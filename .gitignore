@@ -1,0 +1,33 @@
+# env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.uv/
+uv.lock.bak
+
+# scratch outputs (disposable, FASRC 90-day purge)
+runs/
+lightning_logs/
+wandb/
+slurm-*.out
+
+# data and models live on holylabs; symlinked in at run time
+data/
+models/
+saved_models/
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# notebooks
+.ipynb_checkpoints/
+
+# code repos cloned into software/ are not tracked by outer git
+# (nequip-private and allegro-private are read-only mir-group forks; install.sh clones them on demand)
+software/nequip-private/
+software/allegro-private/
