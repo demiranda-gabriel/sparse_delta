@@ -37,4 +37,4 @@ Reverse-chronological. Add a row in the same commit that creates the experiment 
 
 | Date | Experiment | Status | Intent | WandB |
 |---|---|---|---|---|
-| | | | | |
+| 2026-05-08 | [m0_complexity_probe](m0_complexity_probe/) | done-success | §12 distribution diagnostic on cameron CO/Pt: do M0 (baseline-B) hidden features yield bimodal `s_i`? | _no run; inference-only_ |

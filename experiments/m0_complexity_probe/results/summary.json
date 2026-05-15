@@ -1,0 +1,35 @@
+{
+  "n_train_frames": 1956,
+  "n_val_frames": 244,
+  "n_val_atoms": 19961,
+  "per_type_train_counts": {
+    "C": 25155,
+    "O": 25155,
+    "Pt": 106831
+  },
+  "per_class_val_counts": {
+    "mixed": 17320,
+    "Pt-only": 1969,
+    "CO-only": 672
+  },
+  "per_type_val_counts": {
+    "C": 3326,
+    "O": 3326,
+    "Pt": 13309
+  },
+  "methods": [
+    "s_F2_norm",
+    "s_F2a_norm",
+    "s_F2b_norm",
+    "s_F2c_norm",
+    "s_F2_maha",
+    "s_F2c_maha"
+  ],
+  "F2_dim": 96,
+  "outputs": {
+    "extxyz": "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/m0_complexity_probe/val_with_si.xyz",
+    "stats": "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/m0_complexity_probe/stats_train.npz",
+    "edge_norms": "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/m0_complexity_probe/edge_norms.npz",
+    "figures": "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/m0_complexity_probe/figures"
+  }
+}
