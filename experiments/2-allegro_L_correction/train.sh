@@ -15,8 +15,10 @@
 
 set -euo pipefail
 
-# === Frontier modules: ROCm 6.2.4 to match torch==2.5.1+rocm6.2 ===
-module load amd-mixed/6.2.4
+# === Frontier modules: ROCm 6.4.2 to match torch==2.9.1+rocm6.4 ===
+# (rocm6.2 wheels are pinned to torch 2.5.x, which is below the >=2.6
+#  required by nequip / nequip-allegro for compile_mode: compile (PT2).)
+module load amd-mixed/6.4.2
 
 # Common locale
 export LANG=en_US.utf8
@@ -27,18 +29,25 @@ PROJECT_ROOT=/lustre/orion/mat281/scratch/demirand/projects/sparse_delta
 cd "$PROJECT_ROOT"
 if [[ ! -x "$PROJECT_ROOT/.venv/bin/nequip-train" ]]; then
     echo "ERROR: .venv/bin/nequip-train not found." >&2
-    echo "       On Frontier, build the venv with: 'uv sync --extra rocm62'." >&2
+    echo "       On Frontier, build the venv with: 'uv sync --extra rocm64'." >&2
     exit 1
 fi
 
 mkdir -p experiments/2-allegro_L_correction/logs
 
-# Resolve to a friendly device count log line
-.venv/bin/python - <<'PY'
-import torch
-print(f"[init] torch={torch.__version__}  hip={torch.version.hip}  device_count={torch.cuda.device_count()}")
-for i in range(torch.cuda.device_count()):
+# Fail-fast venv check: torch must be a ROCm build and at least one GPU
+# must be visible. A CUDA-wheel torch slips in if `uv sync` was run with
+# the wrong extra; without this, the job would only fail several seconds
+# into trainer init, wasting a queue slot.
+.venv/bin/python - <<'PY' || { echo "[init] venv check failed — re-run 'uv sync --extra rocm64'" >&2; exit 2; }
+import sys, torch
+hip = torch.version.hip
+dev = torch.cuda.device_count()
+print(f"[init] torch={torch.__version__}  hip={hip}  device_count={dev}")
+for i in range(dev):
     print(f"  device[{i}] = {torch.cuda.get_device_name(i)}")
+if hip is None or dev == 0:
+    sys.exit(1)
 PY
 
 # Single-run experiment: config.yaml lives in this directory. nequip-train uses

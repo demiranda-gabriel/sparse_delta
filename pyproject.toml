@@ -3,16 +3,65 @@ name = "sparse-delta"
 version = "0.1.0"
 description = "Sparse, smooth, locally-triggered multi-fidelity correction for ML interatomic potentials."
 readme = "README.md"
-requires-python = ">=3.10"
+# ROCm 6.2 PyTorch wheels are cp310/cp311/cp312 only (no cp313 yet). The
+# CUDA wheels on PyPI also support cp312, so this upper bound is fine
+# everywhere we currently run.
+requires-python = ">=3.10,<3.13"
+
+# Common deps that are independent of the GPU vendor. Vendor-specific deps
+# (torch source + triton on ROCm; cuequivariance on CUDA) live in optional
+# extras below; pick exactly one extra at `uv sync` time per cluster.
 dependencies = [
     "nequip",
     "nequip-allegro",
     "sparse-delta-core",
-    "cuequivariance-ops-torch-cu12>=0.10.0",
-    "cuequivariance-torch>=0.10.0",
-    "torch==2.9.0",
     "wandb>=0.26.0",
     "setuptools<81",
+]
+
+# ===================================================================
+# Cluster-specific extras
+# ===================================================================
+#
+# Frontier (AMD MI250X / ROCm 6.4.x):
+#     uv sync --extra rocm64
+#
+# Any NVIDIA cluster with CUDA 12.x and PyPI's default torch wheels:
+#     uv sync --extra cuda
+#
+# Note: nequip / nequip-allegro require torch >= 2.6 for compile_mode:
+# compile (PT2). The ROCm 6.2 wheel index tops out at torch 2.5.1, so
+# the historical `rocm62` extra cannot compile. Frontier ships
+# `amd-mixed/6.4.x` modules which are the right runtime match for the
+# rocm6.4 wheel index (torch 2.7–2.9).
+#
+# The `conflicts` block below prevents both extras from being installed
+# at once. Use the matching `[tool.uv.sources]` rule + `[[tool.uv.index]]`
+# to pull torch from the right wheel index per extra.
+#
+# DO NOT run `uv sync` without one of these extras — the resulting env
+# will be missing torch and nequip/allegro will fail to import.
+[project.optional-dependencies]
+cuda = [
+    "torch>=2.6",
+    "cuequivariance-ops-torch-cu12>=0.10.0",
+    "cuequivariance-torch>=0.10.0",
+]
+rocm64 = [
+    # ROCm 6.4 wheels ship torch 2.8/2.9 — pinning to 2.9.1 (latest as of
+    # 2026-05) so the lockfile is reproducible. >=2.6 satisfies nequip's
+    # PT2-compile requirement.
+    "torch==2.9.1",
+    # Triton kernels for ROCm ship in a separate wheel that torch+rocm6.4
+    # declares as a transitive dep. uv's explicit-index source mapping
+    # does not propagate to purely transitive deps, so we list it directly.
+    # 3.5.x matches torch 2.9.x.
+    "pytorch-triton-rocm==3.5.1",
+]
+
+[tool.uv]
+conflicts = [
+    [{ extra = "cuda" }, { extra = "rocm64" }],
 ]
 
 [tool.uv.workspace]
@@ -22,10 +71,24 @@ members = [
     "software/sparse-delta-core",
 ]
 
+# The PyTorch ROCm 6.4 wheel index. Only torch and pytorch-triton-rocm are
+# routed here (via [tool.uv.sources] below); everything else stays on PyPI.
+[[tool.uv.index]]
+name = "pytorch-rocm-6.4"
+url = "https://download.pytorch.org/whl/rocm6.4"
+explicit = true
+
 [tool.uv.sources]
 nequip = { workspace = true, editable = true }
 nequip-allegro = { workspace = true, editable = true }
 sparse-delta-core = { workspace = true, editable = true }
+# Under the `rocm64` extra, pull torch from the ROCm wheel index. Under the
+# `cuda` extra, omitting any source uses PyPI's default, which ships CUDA
+# wheels by default.
+torch = [
+    { index = "pytorch-rocm-6.4", extra = "rocm64" },
+]
+pytorch-triton-rocm = { index = "pytorch-rocm-6.4", extra = "rocm64" }
 
 [dependency-groups]
 dev = [

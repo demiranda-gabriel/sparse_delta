@@ -2,7 +2,7 @@
 
 **Status:** planned
 **Date:** 2026-05-15
-**Outer SHA:** `14cf92ae`
+**Outer SHA:** `e3fb27c1`
 **Submodule SHAs:** `nequip-private=c2ec1f2b  allegro-private=82d7258`
 **WandB:** project [wandb.ai/demiranda-gabriel/sparse-delta](https://wandb.ai/demiranda-gabriel/sparse-delta), group `2-allegro_L_correction`. Run URL: _filled when job 4590559 starts._
 
@@ -10,7 +10,7 @@
 
 First training run on the cameron CO/Pt dataset in `sparse_delta`. Train a large Allegro model with the `l-l3-paper` architecture from [`mtfd/experiments/12-bulk_pt_relabel_sweep`](../../../mtfd/experiments/12-bulk_pt_relabel_sweep/) — the largest tag in that 5-tag bulk-Pt sweep. Adapted for:
 
-- **Frontier (AMD MI250X / ROCm 6.2.4).** Drop `enable_CuEquivarianceContracter` (NVIDIA-only); keep `compile_mode: compile`.
+- **Frontier (AMD MI250X / ROCm 6.4.2).** Drop `enable_CuEquivarianceContracter` (NVIDIA-only); keep `compile_mode: compile`.
 - **3 species** `{C, O, Pt}` (not bulk Pt only).
 - **sparse_delta paths and wandb.** Project `sparse-delta`, entity `demiranda-gabriel`.
 
@@ -82,17 +82,18 @@ On success, follow [`notes/workflow.md`](../../notes/workflow.md) curation step:
 
 ## Environment notes (Frontier)
 
-This is the first training run on Frontier from sparse_delta. The project's `pyproject.toml` exposes cluster-specific deps as extras:
+First training run on Frontier from sparse_delta. The project's `pyproject.toml` exposes cluster-specific deps as extras:
 
-- `uv sync --extra rocm62` → AMD MI250X / ROCm 6.2.4 wheels (this cluster).
+- `uv sync --extra rocm64` → AMD MI250X / ROCm 6.4 wheels (this cluster); pins `torch==2.9.1+rocm6.4` + `pytorch-triton-rocm==3.5.1`.
 - `uv sync --extra cuda` → NVIDIA wheels + cuequivariance (FASRC or similar).
 
-The two extras are declared `conflicts` so only one can be installed at a time. On Frontier we use `rocm62`. Notes:
+The two extras are declared `conflicts` so only one can be installed at a time. On Frontier we use `rocm64`. Notes:
 
+- The earlier `rocm62` extra was abandoned: the rocm6.2 wheel index tops out at torch 2.5.1, which is below nequip/allegro's `>=2.6` PT2-compile requirement. Migrating to rocm6.4 wheels + the `amd-mixed/6.4.2` module solves this.
 - `cuequivariance-*` is in the `cuda` extra and not installed here; the `enable_CuEquivarianceContracter` modifier is omitted from the config accordingly.
-- ROCm runtime: `module load amd-mixed/6.2.4` (in `train.sh`).
-- `compile_mode: compile` retained — ROCm-compatible.
-- Verified: `M0-baseline-B.nequip.zip` loads and forward-passes on the login-node MI210; compute nodes have MI250X (same `gfx90a`).
+- ROCm runtime: `module load amd-mixed/6.4.2` (in `train.sh`).
+- `compile_mode: compile` retained — ROCm-compatible from torch 2.6 onward.
+- Verified: torch 2.9.1+rocm6.4 reports `torch.version.hip = "6.4.43484-..."` and `torch.cuda.device_count() == 1` on the login-node MI210; compute nodes have MI250X (same `gfx90a`).
 
 ## Outcome
 
