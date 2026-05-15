@@ -1,0 +1,209 @@
+# 2-allegro_L_correction
+#
+# Train an Allegro L model on the cameron CO/Pt dataset (split_dataset_r5.0_*),
+# using the same architecture as `l-l3-paper` from
+# mtfd/experiments/12-bulk_pt_relabel_sweep but adapted for:
+#
+#   - Frontier (AMD MI250X, ROCm 6.2.4) — drop CuEquivariance modifier
+#     (NVIDIA-only); keep compile_mode: compile.
+#   - 3 chemical species {C, O, Pt} instead of bulk-Pt only.
+#   - sparse_delta paths, wandb project = sparse-delta.
+#
+# This is M1 (the strictly-local correction model) for the sparse_delta
+# gated multi-fidelity design. Allegro is strictly local at any num_layers
+# because its receptive field is r_max regardless of depth (see
+# notes/sparse_local_correction.md §2.3), so num_layers=4 is fine.
+
+# === fixed hparams (from mtfd l-l3-paper) ===
+common_seed: 185
+
+# Architecture (L config)
+l_max: 3
+cutoff_radius: 7.0
+num_layers: 4
+num_scalar_features: 128
+num_tensor_features: 64
+allegro_depth: 2
+allegro_width: 128
+readout_width: 64
+
+# Radial basis
+num_bessels: 12
+polynomial_cutoff_p: 6
+radial_chemical_embed_dim: 512
+
+# Two-body scalar embedding MLP
+scalar_embed_mlp_hidden_layers_depth: 1
+scalar_embed_mlp_hidden_layers_width: 512
+
+# Readout MLP
+readout_depth: 1
+
+# Nonlinearities
+allegro_nonlinearity: silu
+readout_nonlinearity: null
+
+# === training ===
+batch_size: 16
+grad_clip: 0.8
+lr: 0.002
+stop_delta: 0
+lr_patience: 20
+lr_factor: 0.8
+
+# === hydra runtime directory (on Frontier lustre scratch) ===
+run_id: 2-allegro_L_correction
+hydra:
+  run:
+    dir: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/runs/${run_id}
+
+# === nequip top-level ===
+run: [train, test]
+
+monitor: val0_epoch/weighted_sum
+chemical_symbols: [C, O, Pt]
+model_type_names: ${chemical_symbols}
+
+data:
+  _target_: nequip.data.datamodule.ASEDataModule
+  train_file_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_train.xyz
+  val_file_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_val.xyz
+  test_file_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_test.xyz
+  exclude_keys:
+    - dipole
+    - model_index
+
+  seed: ${common_seed}
+  transforms:
+    - _target_: nequip.data.transforms.ChemicalSpeciesToAtomTypeMapper
+      model_type_names: ${model_type_names}
+    - _target_: nequip.data.transforms.NeighborListTransform
+      r_max: ${cutoff_radius}
+
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: 8
+    shuffle: true
+  val_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: ${data.train_dataloader.num_workers}
+  test_dataloader: ${data.val_dataloader}
+
+  stats_manager:
+    _target_: nequip.data.CommonDataStatisticsManager
+    dataloader_kwargs:
+      batch_size: ${batch_size}
+    type_names: ${model_type_names}
+
+trainer:
+  _target_: lightning.Trainer
+  accelerator: gpu
+  enable_checkpointing: true
+  gradient_clip_val: ${grad_clip}
+  max_epochs: 5000
+  max_time: 01:00:00:00
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+  logger:
+    _target_: lightning.pytorch.loggers.wandb.WandbLogger
+    project: sparse-delta
+    entity: demiranda-gabriel
+    name: ${run_id}
+    group: 2-allegro_L_correction
+    save_dir: ${hydra:runtime.output_dir}
+
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: ${monitor}
+      dirpath: ${hydra:runtime.output_dir}
+      filename: best
+      save_last: true
+
+    - _target_: lightning.pytorch.callbacks.EarlyStopping
+      monitor: ${monitor}
+      min_delta: ${stop_delta}
+      patience: 1000
+
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: epoch
+
+training_module:
+  _target_: nequip.train.NequIPLightningModule
+
+  loss:
+    _target_: nequip.train.EnergyForceLoss
+    per_atom_energy: true
+    coeffs:
+      total_energy: 1.0
+      forces: 1.0
+
+  val_metrics:
+    _target_: nequip.train.EnergyForceMetrics
+    coeffs:
+      per_atom_energy_mae: 1.0
+      forces_mae: 1.0
+  train_metrics: ${training_module.val_metrics}
+  test_metrics: ${training_module.val_metrics}
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${lr}
+
+  lr_scheduler:
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      patience: ${lr_patience}
+      factor: ${lr_factor}
+      min_lr: 1e-6
+    monitor: ${monitor}
+    interval: epoch
+    frequency: 1
+
+  # Note: enable_CuEquivarianceContracter (NVIDIA-only) is intentionally
+  # not used on Frontier. compile_mode: compile is still applied.
+  model:
+    _target_: allegro.model.AllegroModel
+    compile_mode: compile
+    seed: ${common_seed}
+    model_dtype: float32
+    type_names: ${model_type_names}
+    r_max: ${cutoff_radius}
+
+    radial_chemical_embed:
+      _target_: allegro.nn.TwoBodyBesselScalarEmbed
+      num_bessels: ${num_bessels}
+      bessel_trainable: false
+      polynomial_cutoff_p: ${polynomial_cutoff_p}
+
+    radial_chemical_embed_dim: ${radial_chemical_embed_dim}
+
+    scalar_embed_mlp_hidden_layers_depth: ${scalar_embed_mlp_hidden_layers_depth}
+    scalar_embed_mlp_hidden_layers_width: ${scalar_embed_mlp_hidden_layers_width}
+    scalar_embed_mlp_nonlinearity: silu
+
+    l_max: ${l_max}
+    parity: true
+
+    num_layers: ${num_layers}
+    tp_path_channel_coupling: true
+
+    num_scalar_features: ${num_scalar_features}
+    num_tensor_features: ${num_tensor_features}
+
+    allegro_mlp_hidden_layers_depth: ${allegro_depth}
+    allegro_mlp_hidden_layers_width: ${allegro_width}
+    allegro_mlp_nonlinearity: ${allegro_nonlinearity}
+
+    readout_mlp_hidden_layers_depth: ${readout_depth}
+    readout_mlp_hidden_layers_width: ${readout_width}
+    readout_mlp_nonlinearity: ${readout_nonlinearity}
+
+    avg_num_neighbors: ${training_data_stats:num_neighbors_mean}
+
+    per_type_energy_shifts: ${training_data_stats:per_atom_energy_mean}
+    per_type_energy_scales: ${training_data_stats:forces_rms}
+    per_type_energy_shifts_trainable: false
+    per_type_energy_scales_trainable: false
