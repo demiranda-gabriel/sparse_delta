@@ -4,7 +4,7 @@
 **Date:** 2026-05-15
 **Outer SHA:** `14cf92ae`
 **Submodule SHAs:** `nequip-private=c2ec1f2b  allegro-private=82d7258`
-**WandB:** _filled at submission_ — project `sparse-delta`, group `2-allegro_L_correction`
+**WandB:** project [wandb.ai/demiranda-gabriel/sparse-delta](https://wandb.ai/demiranda-gabriel/sparse-delta), group `2-allegro_L_correction`. Run URL: _filled when job 4590559 starts._
 
 ## Intent
 
