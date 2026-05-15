@@ -6,11 +6,20 @@ This file captures the day-to-day workflow for runs and experiments in `sparse_d
 
 | Tier | Path | Tracked? | Purpose |
 |---|---|---|---|
-| git | `experiments/<name>/` | yes | Reproducibility source-of-truth: configs, SLURM scripts, READMEs. |
-| holylabs | `saved_models/`, `models/`, `data/`, `archive/` | symlinks only | Preserved artifacts (pre-trained models, datasets, curated checkpoints). |
-| scratch | `runs/<name>/` | no | Disposable training outputs, FASRC 90-day purge. |
+| git | `experiments/<name>/` | yes | Reproducibility source-of-truth: configs, SLURM scripts, READMEs, scripts, **and result-grade artifacts (figures, output datasets, summary files) under `experiments/<name>/results/`**. |
+| holylabs | `saved_models/`, `models/`, `data/`, `archive/` | symlinks only | Preserved artifacts (pre-trained models, datasets, curated checkpoints, large result artifacts > ~50 MB that don't belong in git). |
+| scratch | `runs/<name>/` | no | Disposable training outputs, FASRC 90-day purge. Workspace only. |
 
-Nothing authoritative lives on scratch. If it matters, copy it to holylabs and update the registry.
+Nothing authoritative lives on scratch. If it matters, copy it to `experiments/<name>/results/` (small, tracked) or `saved_models/` (large, holylabs) and update the registry.
+
+### Where do figures and output datasets go?
+
+**Result-grade artifacts go in `experiments/<name>/results/`**, not `runs/`. This includes:
+- Figures (`*.png`, `*.pdf`).
+- Output datasets the experiment was supposed to produce (e.g. an extxyz with custom per-atom fields, a summary `.npz`, a `summary.json`).
+- The captured run log if it's the only record of run-time metrics (when there is no WandB run).
+
+`runs/<name>/` is for working / intermediate output during a run, not the deliverable. If a result file is over ~50 MB, ask before adding to git — it likely belongs in `saved_models/` (holylabs) with a row in `saved_models/best_checkpoint_paths.csv` pointing at the holylabs path.
 
 ## Per-experiment recipe
 
