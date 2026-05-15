@@ -2,7 +2,7 @@
 
 **Status:** planned
 **Date:** 2026-05-15
-**Outer SHA:** `9bb696dc`
+**Outer SHA:** `14cf92ae`
 **Submodule SHAs:** `nequip-private=c2ec1f2b  allegro-private=82d7258`
 **WandB:** _filled at submission_ — project `sparse-delta`, group `2-allegro_L_correction`
 
@@ -75,6 +75,8 @@ Outputs:
 
 - Hydra run dir: `/lustre/orion/mat281/scratch/demirand/projects/sparse_delta/runs/2-allegro_L_correction/` — checkpoints (`best*.ckpt`, `last.ckpt`), wandb local dir, lightning logs.
 - SLURM logs: `experiments/2-allegro_L_correction/logs/`.
+
+**Frontier walltime policy.** OLCF's bin policy caps 1-node jobs at 2 h walltime regardless of QoS (`debug`, `normal`, `extended` all enforce it on small node counts). `train.sh` therefore requests `--time=01:55:00`. To reach the lightning-side `max_time=1d`, chain submissions: each job restarts from `last.ckpt` in the hydra run dir, and the next is enqueued via `--dependency=afterok:<jobid>` (or manually after the first finishes). The wandb run resumes by `id` automatically as long as the run dir is reused.
 
 On success, follow [`notes/workflow.md`](../../notes/workflow.md) curation step: copy best ckpt + nequip package to `saved_models/packages/2-allegro_L_correction.nequip.zip`, append a row to `saved_models/best_checkpoint_paths.csv`, flip status to `done-success`, paste the wandb run URL above.
 

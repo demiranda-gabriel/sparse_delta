@@ -6,7 +6,10 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --time=1-00:00:00
+#SBATCH --time=01:55:00
+# Note: Frontier's bin policy caps 1-node jobs at 2h walltime (any QoS).
+# Config max_time=1d is enforced lightning-side; to use it fully, chain
+# multiple submissions via --dependency=afterok and last.ckpt restart.
 #SBATCH -o /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/2-allegro_L_correction/logs/%x_%j.out
 #SBATCH -e /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/2-allegro_L_correction/logs/%x_%j.err
 
