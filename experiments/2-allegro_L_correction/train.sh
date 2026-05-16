@@ -4,9 +4,9 @@
 #SBATCH -p batch
 #SBATCH -q debug
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=1
-#SBATCH --cpus-per-task=8
+#SBATCH --ntasks-per-node=8
+#SBATCH --gpus-per-node=8
+#SBATCH --cpus-per-task=7
 #SBATCH --time=01:55:00
 # Note: Frontier's bin policy caps 1-node jobs at 2h walltime (any QoS).
 # Config max_time=1d is enforced lightning-side; to use it fully, chain
@@ -25,14 +25,12 @@ module load amd-mixed/6.4.2
 export LANG=en_US.utf8
 export LC_ALL=en_US.utf8
 
-# Frontier compute nodes carry 8 GCDs (4× MI250X). Even with
-# --gpus-per-node=1 the node is allocated exclusively, so the OS still
-# exposes all 8 GCDs to the process and torch.cuda.device_count() returns
-# 8. Lightning then auto-selects 8 devices and crashes against
-# --ntasks-per-node=1. Pin visibility to GCD 0 (matched by devices=1 in
-# the trainer config). For multi-GPU training, set this to 0-7 and bump
-# ntasks-per-node + Trainer.devices in lock-step.
-export ROCR_VISIBLE_DEVICES=0
+# Use all 8 GCDs per node via DDP. SLURM allocates the node exclusively
+# (4× MI250X = 8 GCDs); --ntasks-per-node=8 spawns one PyTorch process
+# per GCD, --cpus-per-task=7 fits 8×7=56 of the 64 cores. Each rank
+# gets a distinct device via Lightning's SLURMEnvironment auto-detect
+# from SLURM_LOCALID. ROCR_VISIBLE_DEVICES is not set — each task sees
+# all 8 GCDs but Lightning binds to rank-specific cuda:LOCAL_RANK.
 
 # Frontier compute nodes have NO outbound internet — wandb's API host
 # `api.wandb.ai` is unreachable and `wandb.init` blocks indefinitely in
@@ -72,6 +70,8 @@ PY
 
 # Single-run experiment: config.yaml lives in this directory. nequip-train uses
 # Hydra; -cd specifies the config dir, -cn the config file (without .yaml).
-.venv/bin/nequip-train \
+# srun spawns 8 ranks (one per GCD); Lightning's SLURMEnvironment plugin
+# auto-detects this and wires up DDP.
+srun .venv/bin/nequip-train \
     -cd "$PROJECT_ROOT/experiments/2-allegro_L_correction" \
     -cn config

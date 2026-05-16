@@ -44,12 +44,12 @@ allegro_nonlinearity: silu
 readout_nonlinearity: null
 
 # === training ===
-# README spec is batch_size=16, but the L config (l_max=3, 4 layers,
-# 128 scalar + 64 tensor features) OOMs at BS=16 on a single MI250X GCD
-# (64 GiB HBM): job 4592392 tried to allocate 133.5 GiB on the first
-# forward. Dropping to 4 for the first chain link so we can see the
-# model actually train; ramp up after confirming what fits.
-batch_size: 4
+# README spec is batch_size=16 (effective). Running DDP × 8 GCDs with
+# per-GCD batch_size=2 gives global batch = 2 × 8 = 16, matching the
+# spec exactly. Single-GPU BS=16 OOMs on a 64 GiB MI250X GCD anyway
+# (the L config tried to allocate 133.5 GiB on its first forward in
+# job 4592392), so DDP is the right way to honour the spec.
+batch_size: 2
 grad_clip: 0.8
 lr: 0.002
 stop_delta: 0
@@ -105,12 +105,14 @@ data:
 trainer:
   _target_: lightning.Trainer
   accelerator: gpu
-  # Explicit single-GPU. Frontier nodes expose 8 GCDs even when sbatch
-  # requests --gpus-per-node=1, so Lightning's auto-detect picks 8 and
-  # crashes against --ntasks-per-node=1. ROCR_VISIBLE_DEVICES=0 in
-  # train.sh hides the other 7; this is the explicit Lightning side.
-  devices: 1
+  # DDP across all 8 GCDs of one MI250X node. SLURM
+  # --ntasks-per-node=8 launches one Lightning rank per GCD via srun;
+  # the SLURMEnvironment plugin (auto-detected) wires up rank /
+  # world_size / device assignment. Global batch = batch_size × devices
+  # = 2 × 8 = 16, matching the README spec.
+  devices: 8
   num_nodes: 1
+  strategy: ddp
   enable_checkpointing: true
   gradient_clip_val: ${grad_clip}
   max_epochs: 5000
