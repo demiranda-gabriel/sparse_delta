@@ -2,6 +2,7 @@
 #SBATCH -J allegro_L_corr
 #SBATCH -A mat281
 #SBATCH -p batch
+#SBATCH -q debug
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=1
