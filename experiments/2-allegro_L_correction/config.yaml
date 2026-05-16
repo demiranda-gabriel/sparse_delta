@@ -17,10 +17,17 @@
 # === fixed hparams (from mtfd l-l3-paper) ===
 common_seed: 185
 
-# Architecture (L config)
+# Architecture (L config with two Frontier-fit deviations: num_layers,
+# num_tensor_features)
 l_max: 3
 cutoff_radius: 7.0
-num_layers: 4
+# README spec: 4. Dropped to 3 because the backward pass at num_layers=4
+# was OOMing rank 2 with a 33.6 GiB request on a 64 GiB GCD, even after
+# num_tensor_features=32 and the allocator-tuning env vars eliminated
+# the fragmentation channel. Fewer layers => fewer stored activations
+# for backward and smaller per-layer intermediates. Headline of the
+# experiment (l_max=3 deep features) is preserved.
+num_layers: 3
 num_scalar_features: 128
 # README spec: 64. Halved because the L config's tensor-product
 # intermediate scales as num_edges × num_paths × C × C with
