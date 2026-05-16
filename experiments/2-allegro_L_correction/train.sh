@@ -79,10 +79,27 @@ if hip is None or dev == 0:
     sys.exit(1)
 PY
 
+# Auto-resume from last.ckpt if a prior chain link wrote one. Frontier's
+# 2 h bin-1 walltime cap forces a chain of submissions to reach the
+# lightning max_time=1d budget; each link picks up the previous one's
+# optimizer state, scheduler state, and current_epoch from the lightning
+# checkpoint via the `ckpt_path` Hydra override (nequip handles the
+# `from-checkpoint` logic). First link of the chain (no last.ckpt yet)
+# starts training from scratch.
+LAST_CKPT="$PROJECT_ROOT/runs/2-allegro_L_correction/last.ckpt"
+if [[ -f "$LAST_CKPT" ]]; then
+    echo "[chain] resuming from $LAST_CKPT"
+    CKPT_OVERRIDE="+ckpt_path=$LAST_CKPT"
+else
+    echo "[chain] no last.ckpt found — starting fresh"
+    CKPT_OVERRIDE=""
+fi
+
 # Single-run experiment: config.yaml lives in this directory. nequip-train uses
 # Hydra; -cd specifies the config dir, -cn the config file (without .yaml).
 # srun spawns 8 ranks (one per GCD); Lightning's SLURMEnvironment plugin
 # auto-detects this and wires up DDP.
 srun .venv/bin/nequip-train \
     -cd "$PROJECT_ROOT/experiments/2-allegro_L_correction" \
-    -cn config
+    -cn config \
+    $CKPT_OVERRIDE
