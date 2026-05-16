@@ -22,7 +22,15 @@ l_max: 3
 cutoff_radius: 7.0
 num_layers: 4
 num_scalar_features: 128
-num_tensor_features: 64
+# README spec: 64. Halved because the L config's tensor-product
+# intermediate scales as num_edges × num_paths × C × C with
+# tp_path_channel_coupling=true, and a single such allocation was
+# 67 GiB at C=64 — larger than the 64 GiB MI250X GCD. Halving C
+# gives roughly 4x reduction → ~17 GiB, fits with headroom. The
+# experiment is now "L-config geometry (l_max=3, r_max=7, num_layers=4)
+# with M-config tensor channel count (32)". Track as deviation in
+# README outcome section.
+num_tensor_features: 32
 allegro_depth: 2
 allegro_width: 128
 readout_width: 64
