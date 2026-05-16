@@ -116,6 +116,12 @@ trainer:
   devices: 8
   num_nodes: 1
   strategy: ddp
+  # Mixed-precision (AMP) on the forward — bf16 activations, fp32
+  # params and optimizer state. Halves activation memory enough to fit
+  # the L config's largest intermediate (~67 GiB at fp32) on a 64 GiB
+  # MI250X GCD. nequip's own model_dtype dispatch doesn't support bf16,
+  # so this is the right knob.
+  precision: bf16-mixed
   enable_checkpointing: true
   gradient_clip_val: ${grad_clip}
   max_epochs: 5000
@@ -190,14 +196,14 @@ training_module:
     _target_: allegro.model.AllegroModel
     compile_mode: eager
     seed: ${common_seed}
-    # README spec: float32. Switched to bfloat16 because the L config's
-    # eager forward at fp32 needs a single 67 GiB intermediate, larger
-    # than the 64 GiB MI250X GCD. bf16 halves activation memory → ~33
-    # GiB peak, fits. Confirmed not a torch.compile artifact (job 4592485
-    # OOM'd identically under eager). This is the second deviation from
-    # the README in this experiment (the first being eager); both will
-    # be revisited once the steady-state footprint is known.
-    model_dtype: bfloat16
+    # README spec: float32. Kept here for the model parameters; the
+    # forward activations are cast to bf16 via Lightning's
+    # precision="bf16-mixed" (set on the Trainer above) to halve the
+    # ~67 GiB activation peak that overflows the 64 GiB MI250X GCD.
+    # Note: nequip's `model_dtype` dispatch only accepts float32/float64
+    # (job 4592526 KeyError'd on "bfloat16"), so AMP-style mixed
+    # precision is the right path here, not whole-model bf16.
+    model_dtype: float32
     type_names: ${model_type_names}
     r_max: ${cutoff_radius}
 
