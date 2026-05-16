@@ -24,6 +24,15 @@ module load amd-mixed/6.4.2
 export LANG=en_US.utf8
 export LC_ALL=en_US.utf8
 
+# Frontier compute nodes carry 8 GCDs (4× MI250X). Even with
+# --gpus-per-node=1 the node is allocated exclusively, so the OS still
+# exposes all 8 GCDs to the process and torch.cuda.device_count() returns
+# 8. Lightning then auto-selects 8 devices and crashes against
+# --ntasks-per-node=1. Pin visibility to GCD 0 (matched by devices=1 in
+# the trainer config). For multi-GPU training, set this to 0-7 and bump
+# ntasks-per-node + Trainer.devices in lock-step.
+export ROCR_VISIBLE_DEVICES=0
+
 # Friendly fail if the venv is missing
 PROJECT_ROOT=/lustre/orion/mat281/scratch/demirand/projects/sparse_delta
 cd "$PROJECT_ROOT"

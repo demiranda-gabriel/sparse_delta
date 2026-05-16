@@ -100,6 +100,12 @@ data:
 trainer:
   _target_: lightning.Trainer
   accelerator: gpu
+  # Explicit single-GPU. Frontier nodes expose 8 GCDs even when sbatch
+  # requests --gpus-per-node=1, so Lightning's auto-detect picks 8 and
+  # crashes against --ntasks-per-node=1. ROCR_VISIBLE_DEVICES=0 in
+  # train.sh hides the other 7; this is the explicit Lightning side.
+  devices: 1
+  num_nodes: 1
   enable_checkpointing: true
   gradient_clip_val: ${grad_clip}
   max_epochs: 5000
