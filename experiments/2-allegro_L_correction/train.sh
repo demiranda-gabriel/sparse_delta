@@ -42,12 +42,16 @@ export LC_ALL=en_US.utf8
 # run dir is reused.
 export WANDB_MODE=offline
 
-# Allow PyTorch's allocator to use expandable segments rather than fixed
-# pools. Job 4592436 had 34.6 GiB reserved-but-unallocated when it OOM'd,
-# which is exactly the failure mode this flag addresses. Cheap to set; if
-# it doesn't help, it's at worst a no-op.
-export PYTORCH_HIP_ALLOC_CONF=expandable_segments:True
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# Allocator tuning. Job 4592618 trained 18 steps before OOMing in
+# backward at 17.3 GiB request with 28 GiB sitting reserved-but-
+# unallocated — exactly the fragmentation case these flags target.
+# Cap split size to 512 MiB to keep large blocks reusable.
+# `PYTORCH_CUDA_ALLOC_CONF` is the deprecated name in torch 2.9
+# (PyTorch warned about it); `PYTORCH_ALLOC_CONF` is the new canonical
+# name. Set both + the HIP-specific variant for belt-and-braces.
+export PYTORCH_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512
+export PYTORCH_HIP_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512
 
 # Friendly fail if the venv is missing
 PROJECT_ROOT=/lustre/orion/mat281/scratch/demirand/projects/sparse_delta
