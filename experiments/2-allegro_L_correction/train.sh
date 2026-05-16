@@ -34,6 +34,16 @@ export LC_ALL=en_US.utf8
 # ntasks-per-node + Trainer.devices in lock-step.
 export ROCR_VISIBLE_DEVICES=0
 
+# Frontier compute nodes have NO outbound internet — wandb's API host
+# `api.wandb.ai` is unreachable and `wandb.init` blocks indefinitely in
+# its retry loop, freezing the trainer at the LightningLogger init hook.
+# Force offline mode; metrics buffer to runs/<run>/wandb/, then sync
+# from a login node with:
+#   wandb sync runs/2-allegro_L_correction/wandb/run-*  (or just */wandb/)
+# The run resumes by id on subsequent chained jobs as long as the hydra
+# run dir is reused.
+export WANDB_MODE=offline
+
 # Friendly fail if the venv is missing
 PROJECT_ROOT=/lustre/orion/mat281/scratch/demirand/projects/sparse_delta
 cd "$PROJECT_ROOT"
