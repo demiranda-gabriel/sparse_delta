@@ -45,6 +45,6 @@ Reverse-chronological. Add a row in the same commit that creates the experiment 
 
 | N | Date | Experiment | Status | Intent | WandB |
 |---|---|---|---|---|---|
-| 2 | 2026-05-15 | [2-allegro_L_correction](2-allegro_L_correction/) | planned | Train L-config Allegro (`l-l3-paper` from mtfd) on cameron CO/Pt as the M1 correction baseline on Frontier (ROCm). | [project](https://wandb.ai/demiranda-gabriel/sparse-delta) (job 4590559 pending) |
+| 2 | 2026-05-15 | [2-allegro_L_correction](2-allegro_L_correction/) | running | Train L-config Allegro (`l-l3-paper` from mtfd) on cameron CO/Pt as the M1 correction baseline on Frontier (ROCm). Frontier-fit deviations: `num_layers=3`, `num_tensor_features=32`, BS=1/GCD × 8 DDP, eager, `bf16-mixed`. | [o2p1l6zr](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/o2p1l6zr) (offline; sync from login node) |
 | 1 | 2026-05-15 | [1-m0_equivariant_invariants](1-m0_equivariant_invariants/) | done-success | §12 extension: cross-channel power spectrum + (1,1,1) antisymmetric-triplet bispectrum on M0 pre-final-layer equivariant features. | _no run; inference-only_ |
 | 0 | 2026-05-08 | [0-m0_complexity_probe](0-m0_complexity_probe/) | done-success | §12 distribution diagnostic on cameron CO/Pt: do M0 (baseline-B) hidden features yield bimodal `s_i`? | _no run; inference-only_ |

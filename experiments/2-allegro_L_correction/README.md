@@ -1,10 +1,10 @@
 # 2-allegro_L_correction
 
-**Status:** planned
+**Status:** running
 **Date:** 2026-05-15
 **Outer SHA:** `e3fb27c1`
 **Submodule SHAs:** `nequip-private=c2ec1f2b  allegro-private=82d7258`
-**WandB:** project [wandb.ai/demiranda-gabriel/sparse-delta](https://wandb.ai/demiranda-gabriel/sparse-delta), group `2-allegro_L_correction`. Run URL: _filled when job 4590559 starts._
+**WandB:** [wandb.ai/demiranda-gabriel/sparse-delta/runs/o2p1l6zr](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/o2p1l6zr) (group `2-allegro_L_correction`). Run logs to `WANDB_MODE=offline` first; publish with `wandb sync runs/2-allegro_L_correction/wandb/offline-run-20260515_235128-o2p1l6zr` from a login node.
 
 ## Intent
 
@@ -97,4 +97,30 @@ The two extras are declared `conflicts` so only one can be installed at a time. 
 
 ## Outcome
 
-_Filled in after the run._
+_In progress as of 2026-05-15 23:51._ Job 4592647 (the first to actually train) reached Epoch 1 and wrote `runs/2-allegro_L_correction/best.ckpt` after ~5 minutes of wall-clock; wandb run id `o2p1l6zr`.
+
+### Deviations from the spec above (driven by Frontier MI250X / 64 GiB GCD memory)
+
+Reaching a running state required eleven failed submissions before training started; each fix is a commit on master. The cumulative deviations from the README's "Architecture" and "Training" tables are:
+
+| Field | Spec | Running with | Reason |
+|---|---|---|---|
+| `num_layers` | 4 | **3** | Backward stored ~33 GiB intermediates at 4 layers (job 4592631). |
+| `num_tensor_features` | 64 | **32** | `tp_path_channel_coupling=true` forward intermediate hit 67 GiB at 64 channels (jobs 4592436 / 75 / 85). |
+| `batch_size` | 16 (global) | **8 (global = 1 × 8 DDP ranks)** | Per-GCD memory budget. |
+| `compile_mode` | `compile` | **`eager`** | Tried to rule out PT2 graph-capture peak; OOM persisted under eager, so this stayed for the run. |
+| `Trainer.precision` | (default fp32) | **`bf16-mixed`** | AMP-style; halves activation memory. Params stay fp32 (nequip's `model_dtype` doesn't accept bf16). |
+
+What's **unchanged** vs spec: `l_max=3`, `r_max=7.0`, `parity=true`, `num_scalar_features=128`, all MLP shapes, the Bessel basis, optimizer/loss/scheduler/early-stop config, dataset paths, seed.
+
+The Frontier-side environment + DDP / SLURM setup landed along the way (some of it is project infra rather than experiment-specific):
+
+- Migrated the project's ROCm extra from `rocm62` (torch 2.5.1 — below nequip's PT2 floor of 2.6) to `rocm64` (torch 2.9.1) + `amd-mixed/6.4.2` module.
+- Pinned the venv to a uv-managed `cpython-3.12.13` (`/.python-version`) — system Python 3.12 is installed on Frontier without dev headers, breaking triton's HIP shim compile.
+- `srun` + `--ntasks-per-node=8 --gpus-per-node=8 --cpus-per-task=7` for DDP × 8 GCDs.
+- `-q debug` for ~10× faster queue placement vs `normal` at the same 2 h walltime cap.
+- `WANDB_MODE=offline` (compute nodes have no outbound internet).
+- `PYTORCH_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512` to tame backward-pass fragmentation.
+- A circular-import fix in [`software/sparse-delta-core/sparse_delta_core/__init__.py`](../../software/sparse-delta-core/sparse_delta_core/__init__.py) (lazy `__getattr__` on `.model` / `.features` / `.nn`) plus a narrower entry point in that package's `pyproject.toml` (`init_always = "sparse_delta_core._keys"`) — sparse-delta-core's eager `.model` import re-entered nequip during nequip's own `init_always` entry-point load.
+
+These are tracked in commits between `665f7d5` (experiment scaffold) and `b8c433d` (the running configuration).
