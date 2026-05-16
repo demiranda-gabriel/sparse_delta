@@ -190,7 +190,14 @@ training_module:
     _target_: allegro.model.AllegroModel
     compile_mode: eager
     seed: ${common_seed}
-    model_dtype: float32
+    # README spec: float32. Switched to bfloat16 because the L config's
+    # eager forward at fp32 needs a single 67 GiB intermediate, larger
+    # than the 64 GiB MI250X GCD. bf16 halves activation memory → ~33
+    # GiB peak, fits. Confirmed not a torch.compile artifact (job 4592485
+    # OOM'd identically under eager). This is the second deviation from
+    # the README in this experiment (the first being eager); both will
+    # be revisited once the steady-state footprint is known.
+    model_dtype: bfloat16
     type_names: ${model_type_names}
     r_max: ${cutoff_radius}
 
