@@ -179,10 +179,16 @@ training_module:
     frequency: 1
 
   # Note: enable_CuEquivarianceContracter (NVIDIA-only) is intentionally
-  # not used on Frontier. compile_mode: compile is still applied.
+  # not used on Frontier. compile_mode is temporarily `eager` because the
+  # full PT2 graph capture at fp32 OOMs the 64 GiB MI250X GCD even at
+  # batch_size=1 / DDP × 8 (jobs 4592436 and 4592475 both tried a single
+  # 67-72 GiB allocation, larger than the device). Eager skips that
+  # capture peak. Once we know the steady-state activation footprint,
+  # we can swap back to compile (possibly with bf16) without losing
+  # experiment validity.
   model:
     _target_: allegro.model.AllegroModel
-    compile_mode: compile
+    compile_mode: eager
     seed: ${common_seed}
     model_dtype: float32
     type_names: ${model_type_names}
