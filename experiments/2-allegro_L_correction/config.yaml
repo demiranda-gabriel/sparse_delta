@@ -44,12 +44,15 @@ allegro_nonlinearity: silu
 readout_nonlinearity: null
 
 # === training ===
-# README spec is batch_size=16 (effective). Running DDP × 8 GCDs with
-# per-GCD batch_size=2 gives global batch = 2 × 8 = 16, matching the
-# spec exactly. Single-GPU BS=16 OOMs on a 64 GiB MI250X GCD anyway
-# (the L config tried to allocate 133.5 GiB on its first forward in
-# job 4592392), so DDP is the right way to honour the spec.
-batch_size: 2
+# README spec is batch_size=16 (effective). DDP × 8 GCDs with
+# per-GCD BS=2 still OOM'd on job 4592436 — a single tensor in the
+# Allegro l_max=3 / num_tensor_features=64 forward needed 71.77 GiB,
+# bigger than one 64 GiB GCD. Dropping to per-GCD BS=1 → global batch
+# = 8 (half of README spec). If this fits, the recovery options to
+# raise global batch back to 16 are: gradient accumulation 2×, or
+# `model_dtype: bfloat16` (which halves activation memory and would
+# allow per-GCD BS=2 again).
+batch_size: 1
 grad_clip: 0.8
 lr: 0.002
 stop_delta: 0

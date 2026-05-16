@@ -42,6 +42,13 @@ export LC_ALL=en_US.utf8
 # run dir is reused.
 export WANDB_MODE=offline
 
+# Allow PyTorch's allocator to use expandable segments rather than fixed
+# pools. Job 4592436 had 34.6 GiB reserved-but-unallocated when it OOM'd,
+# which is exactly the failure mode this flag addresses. Cheap to set; if
+# it doesn't help, it's at worst a no-op.
+export PYTORCH_HIP_ALLOC_CONF=expandable_segments:True
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 # Friendly fail if the venv is missing
 PROJECT_ROOT=/lustre/orion/mat281/scratch/demirand/projects/sparse_delta
 cd "$PROJECT_ROOT"
