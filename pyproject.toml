@@ -43,7 +43,12 @@ dependencies = [
 # will be missing torch and nequip/allegro will fail to import.
 [project.optional-dependencies]
 cuda = [
-    "torch>=2.6",
+    # Pin torch to a CUDA 12.x build. Starting with torch 2.12 the
+    # default PyPI wheels switched to CUDA 13 (driver >= 580), which
+    # FASRC's `gpu_test` / `kozinsky_gpu` nodes (driver 12.x) cannot
+    # load. The `pytorch-cu128` index below routes torch to the
+    # CUDA 12.8 wheel set, which works on driver 12.x nodes.
+    "torch>=2.6,<2.12",
     "cuequivariance-ops-torch-cu12>=0.10.0",
     "cuequivariance-torch>=0.10.0",
 ]
@@ -78,15 +83,24 @@ name = "pytorch-rocm-6.4"
 url = "https://download.pytorch.org/whl/rocm6.4"
 explicit = true
 
+# The PyTorch CUDA 12.8 wheel index. PyPI's default torch ships CUDA 13
+# starting with torch 2.12, which requires driver >= 580; FASRC nodes
+# run 12.x drivers. Route torch via this index under the `cuda` extra.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
 [tool.uv.sources]
 nequip = { workspace = true, editable = true }
 nequip-allegro = { workspace = true, editable = true }
 sparse-delta-core = { workspace = true, editable = true }
-# Under the `rocm64` extra, pull torch from the ROCm wheel index. Under the
-# `cuda` extra, omitting any source uses PyPI's default, which ships CUDA
-# wheels by default.
+# Per-extra torch source routing. `cuda` -> CUDA 12.8 wheels (driver-
+# compatible with most current NVIDIA hosts). `rocm64` -> ROCm 6.4
+# wheels (Frontier).
 torch = [
     { index = "pytorch-rocm-6.4", extra = "rocm64" },
+    { index = "pytorch-cu128", extra = "cuda" },
 ]
 pytorch-triton-rocm = { index = "pytorch-rocm-6.4", extra = "rocm64" }
 
