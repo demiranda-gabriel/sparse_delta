@@ -12,6 +12,7 @@ runs/
 lightning_logs/
 wandb/
 slurm-*.out
+core.*
 
 # data and models live on holylabs; symlinked in at run time
 data/
@@ -31,3 +32,4 @@ saved_models/
 # (nequip-private and allegro-private are read-only mir-group forks; install.sh clones them on demand)
 software/nequip-private/
 software/allegro-private/
+software/sparse-delta-core/
