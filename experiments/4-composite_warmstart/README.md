@@ -2,7 +2,7 @@
 
 **Status:** planned
 **Date:** 2026-05-17
-**Outer SHA:** `637bae9`
+**Outer SHA:** `2677aca`
 **Submodule SHAs:** `nequip-private=74c7689  allegro-private=82d7258  sparse-delta-core=9e10612`
 **WandB:** _filled at submission_ — project `sparse-delta`, group `4-composite_warmstart`
 
