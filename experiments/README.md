@@ -45,6 +45,8 @@ Reverse-chronological. Add a row in the same commit that creates the experiment 
 
 | N | Date | Experiment | Status | Intent | WandB |
 |---|---|---|---|---|---|
+| 4 | 2026-05-17 | [4-composite_warmstart](4-composite_warmstart/) | planned | First training run of the from-scratch warm-start composite. M0 and M1 are both fresh `Allegro_Module`s; M1's `tensor_features_in_field` is aliased to M0's `_allegro_pre_final_tp_out`. Joint training; nothing frozen. FASRC `kozinsky_gpu`. | _filled at submission_ |
+| 3 | 2026-05-15 | [3-composite_phase_A](3-composite_phase_A/) | planned | Phase A composite training: load pre-trained M0 (baseline-B) and M1 (from exp 2) `.nequip.zip` packages, freeze both, train only the gate. Distinct from exp 4 (architectural warm-start, joint training). | _blocked on exp 2 ckpt_ |
 | 2 | 2026-05-15 | [2-allegro_L_correction](2-allegro_L_correction/) | running | Train L-config Allegro (`l-l3-paper` from mtfd) on cameron CO/Pt as the M1 correction baseline on Frontier (ROCm). Frontier-fit deviations: `num_layers=3`, `num_tensor_features=32`, BS=1/GCD × 8 DDP, eager, `bf16-mixed`. | [o2p1l6zr](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/o2p1l6zr) (offline; sync from login node) |
 | 1 | 2026-05-15 | [1-m0_equivariant_invariants](1-m0_equivariant_invariants/) | done-success | §12 extension: cross-channel power spectrum + (1,1,1) antisymmetric-triplet bispectrum on M0 pre-final-layer equivariant features. | _no run; inference-only_ |
 | 0 | 2026-05-08 | [0-m0_complexity_probe](0-m0_complexity_probe/) | done-success | §12 distribution diagnostic on cameron CO/Pt: do M0 (baseline-B) hidden features yield bimodal `s_i`? | _no run; inference-only_ |
