@@ -11,11 +11,11 @@ six methods:
 Plus per-edge norms by directed (recv_type, send_type) pair (M7).
 
 Outputs:
-    runs/m0_complexity_probe/stats_train.npz
-    runs/m0_complexity_probe/val_with_si.xyz
-    runs/m0_complexity_probe/figures/*.png
+    experiments/0-m0_complexity_probe/results/stats_train.npz
+    experiments/0-m0_complexity_probe/results/val_with_si.xyz
+    experiments/0-m0_complexity_probe/results/figures/*.png
 
-See experiments/m0_complexity_probe/NOTES.md for the math.
+See experiments/0-m0_complexity_probe/NOTES.md for the math.
 """
 
 import json
@@ -47,7 +47,7 @@ DATA_ROOT = Path(
 )
 TRAIN_XYZ = DATA_ROOT / "split_dataset_r5.0_train.xyz"
 VAL_XYZ = DATA_ROOT / "split_dataset_r5.0_val.xyz"
-OUT_DIR = PROJECT_ROOT / "experiments/m0_complexity_probe/results"
+OUT_DIR = PROJECT_ROOT / "experiments/0-m0_complexity_probe/results"
 FIG_DIR = OUT_DIR / "figures"
 LOG_DIR = OUT_DIR  # log goes alongside results, no separate logs/ subdir
 

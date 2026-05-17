@@ -1,4 +1,4 @@
-# m0_complexity_probe
+# 0-m0_complexity_probe
 
 **Status:** done-success
 **Date:** 2026-05-08
@@ -36,10 +36,10 @@ Interactive on local A100. No SLURM.
 
 ```bash
 cd /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta
-uv run python experiments/m0_complexity_probe/probe.py
+uv run python experiments/0-m0_complexity_probe/probe.py
 ```
 
-Outputs land in `experiments/m0_complexity_probe/results/`:
+Outputs land in `experiments/0-m0_complexity_probe/results/`:
 - `val_with_si.xyz` — extxyz with per-atom `s_i` arrays for OVITO.
 - `figures/*.png` — histograms, per-class violins.
 - `probe.log` — stdout/stderr.

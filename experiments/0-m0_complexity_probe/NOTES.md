@@ -1,4 +1,4 @@
-# NOTES — m0_complexity_probe
+# NOTES — 0-m0_complexity_probe
 
 Theory and methodology for the §12 distribution diagnostic. The script [`probe.py`](probe.py) implements what is described here.
 
@@ -243,7 +243,7 @@ After the pass:
 - `Σ̃_t = Σ_t + ε · tr(Σ_t)/d · I`
 - `Σ̃_t^{-1}` via `torch.linalg.inv`
 
-Save as `runs/m0_complexity_probe/stats_train.npz` for reuse.
+Save as `experiments/0-m0_complexity_probe/results/stats_train.npz` for reuse.
 
 ### 8.3 Score pass over val set
 
@@ -255,10 +255,10 @@ For each val frame:
 5. Also accumulate per-edge `(type_recv, type_send, ‖h_ij‖₂)` triples for M7.
 
 Output:
-- `runs/m0_complexity_probe/val_with_si.xyz` — concatenated extxyz, one frame block per val frame, with per-atom `s_F2_norm`, `s_F2a_norm`, `s_F2b_norm`, `s_F2c_norm`, `s_F2_maha`, `s_F2c_maha`, `m0_per_atom_energy`. **Loadable in OVITO; switch atomic-property coloring to compare methods visually.**
-- `runs/m0_complexity_probe/figures/hist_<method>.png` — overlaid histograms by composition class.
-- `runs/m0_complexity_probe/figures/violin_<method>.png` — per-class violin plots.
-- `runs/m0_complexity_probe/figures/edge_norms_by_pair.png` — M7 distributions.
+- `experiments/0-m0_complexity_probe/results/val_with_si.xyz` — concatenated extxyz, one frame block per val frame, with per-atom `s_F2_norm`, `s_F2a_norm`, `s_F2b_norm`, `s_F2c_norm`, `s_F2_maha`, `s_F2c_maha`, `m0_per_atom_energy`. **Loadable in OVITO; switch atomic-property coloring to compare methods visually.**
+- `experiments/0-m0_complexity_probe/results/figures/hist_<method>.png` — overlaid histograms by composition class.
+- `experiments/0-m0_complexity_probe/results/figures/violin_<method>.png` — per-class violin plots.
+- `experiments/0-m0_complexity_probe/results/figures/edge_norms_by_pair.png` — M7 distributions.
 
 ### 8.4 What success looks like
 

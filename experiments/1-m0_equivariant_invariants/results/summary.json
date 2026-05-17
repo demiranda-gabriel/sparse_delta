@@ -1,0 +1,55 @@
+{
+  "n_val_frames": 244,
+  "n_val_atoms": 19961,
+  "num_layers": 2,
+  "num_tensor_features": 32,
+  "f2_dim": 96,
+  "pre_final_slot_info": [
+    {
+      "l": 0,
+      "parity": 1,
+      "psym": "e",
+      "label": "l0e",
+      "start": 0,
+      "end": 1,
+      "dim": 1
+    },
+    {
+      "l": 1,
+      "parity": -1,
+      "psym": "o",
+      "label": "l1o",
+      "start": 1,
+      "end": 4,
+      "dim": 3
+    }
+  ],
+  "n_l1_triplets": 4960,
+  "per_class_atom_counts": {
+    "mixed": 17320,
+    "Pt-only": 1969,
+    "CO-only": 672
+  },
+  "per_type_atom_counts": {
+    "C": 3326,
+    "O": 3326,
+    "Pt": 13309
+  },
+  "power_blocks": {
+    "l1o": [
+      19961,
+      528
+    ]
+  },
+  "bispec_blocks": {
+    "l1o": [
+      19961,
+      4960
+    ]
+  },
+  "outputs": {
+    "extxyz": "/lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/val_with_si.xyz",
+    "invariants_npz": "/lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/val_invariants.npz",
+    "figures": "/lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures"
+  }
+}

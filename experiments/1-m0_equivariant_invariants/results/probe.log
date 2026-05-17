@@ -1,0 +1,45 @@
+2026-05-15 14:11:12,824 [INFO] device: cpu
+2026-05-15 14:11:12,824 [INFO] package: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/saved_models/packages/M0-baseline-B.nequip.zip
+2026-05-15 14:11:12,824 [INFO] val:     /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_val.xyz
+2026-05-15 14:11:12,824 [INFO] loading model package...
+2026-05-15 14:11:12,824 [INFO] [rank: 0] Loading model from package file: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/saved_models/packages/M0-baseline-B.nequip.zip ...
+2026-05-15 14:11:13,615 [INFO] Allegro_Module: num_layers=2, num_tensor_features=32
+2026-05-15 14:11:13,615 [INFO] hooking pre-final-layer TP: tps[0]
+2026-05-15 14:11:13,616 [INFO] pre-final irreps_out: 1x0e+1x1o (base_dim=4, mul=32)
+2026-05-15 14:11:13,616 [INFO]   irrep slot: l0e  slice=[0:1]  dim=1
+2026-05-15 14:11:13,616 [INFO]   irrep slot: l1o  slice=[1:4]  dim=3
+2026-05-15 14:11:13,616 [INFO] post-Allegro edge_features dim (F2): 96
+2026-05-15 14:11:13,616 [INFO] F2c slice for s_F2c_norm baseline: [64:96]
+2026-05-15 14:11:13,635 [INFO] l=1 antisymmetric triplets: T = C(C-1)(C-2)/6 = 4960 (C = 32)
+2026-05-15 14:11:13,635 [INFO] loading val frames...
+2026-05-15 14:11:13,856 [INFO] val frames: 244
+2026-05-15 14:11:13,856 [INFO] sanity probe on first val frame...
+2026-05-15 14:11:14,047 [INFO] sanity: pre_final shape = (4002, 32, 4), edge_features shape = (4002, 96)
+2026-05-15 14:11:14,047 [INFO] running score pass over val...
+2026-05-15 14:11:15,061 [INFO] score pass: frame 25/244 (24.7 fps)
+2026-05-15 14:11:15,878 [INFO] score pass: frame 50/244 (27.3 fps)
+2026-05-15 14:11:16,922 [INFO] score pass: frame 75/244 (26.1 fps)
+2026-05-15 14:11:17,785 [INFO] score pass: frame 100/244 (26.8 fps)
+2026-05-15 14:11:18,628 [INFO] score pass: frame 125/244 (27.3 fps)
+2026-05-15 14:11:19,601 [INFO] score pass: frame 150/244 (27.0 fps)
+2026-05-15 14:11:20,482 [INFO] score pass: frame 175/244 (27.2 fps)
+2026-05-15 14:11:21,422 [INFO] score pass: frame 200/244 (27.1 fps)
+2026-05-15 14:11:22,291 [INFO] score pass: frame 225/244 (27.3 fps)
+2026-05-15 14:11:22,916 [INFO] score pass done in 8.9s
+2026-05-15 14:11:23,095 [INFO] writing raw invariants to /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/val_invariants.npz
+2026-05-15 14:11:39,902 [INFO]   power_l1o: shape (19961, 528)
+2026-05-15 14:11:39,902 [INFO]   bispec_l1o: shape (19961, 4960)
+2026-05-15 14:11:39,903 [INFO] writing extxyz to /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/val_with_si.xyz
+2026-05-15 14:11:40,225 [INFO] plotting per-class histograms of summary scalars...
+2026-05-15 14:11:40,698 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_F2c_norm_by_class.png
+2026-05-15 14:11:41,018 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_F2c_norm_by_atomtype.png
+2026-05-15 14:11:41,353 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_power_l1o_norm_by_class.png
+2026-05-15 14:11:41,681 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_power_l1o_norm_by_atomtype.png
+2026-05-15 14:11:42,017 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_power_total_norm_by_class.png
+2026-05-15 14:11:42,505 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_power_total_norm_by_atomtype.png
+2026-05-15 14:11:42,858 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_bispec_l1o_norm_by_class.png
+2026-05-15 14:11:43,205 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_bispec_l1o_norm_by_atomtype.png
+2026-05-15 14:11:43,561 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_bispec_total_norm_by_class.png
+2026-05-15 14:11:43,910 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/figures/hist_s_bispec_total_norm_by_atomtype.png
+2026-05-15 14:11:43,920 [INFO] wrote /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/experiments/1-m0_equivariant_invariants/results/summary.json
+2026-05-15 14:11:43,921 [INFO] DONE

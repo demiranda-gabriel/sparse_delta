@@ -1,0 +1,185 @@
+# 3-composite_phase_A
+#
+# First training run of the sparse_delta composite (M0 + gate + M1).
+# Phase A schedule from notes/sparse_local_correction.md §16.3:
+#   * M0 frozen
+#   * M1 frozen (warm-started from experiment 2's checkpoint)
+#   * only the gate MLP trains
+#   * loss = E + F MSE + α · mean(λ)  (sigmoid gate; poly_5 swap is Phase D)
+#
+# Per-atom λ is computed from C0 features only (compute_p1=False); see
+# §16.2. The P1 plumbing is still in the codebase, just unused.
+
+# === fixed hparams ===
+common_seed: 185
+cutoff_radius: 7.0          # baseline-B and L both use r_max=7.0
+
+# Gate MLP
+gate_hidden_dim: 64
+gate_depth: 2
+initial_lambda_mean: 0.05   # target mean(λ) at init; bias-set so it's exact
+
+# Sparsity penalty: relative weight inside MetricsManager's weighted_sum.
+# MetricsManager auto-normalises coeffs to sum to 1, so this is the
+# ratio of sparsity_penalty : energy_mse : forces_mse — not an absolute α.
+sparsity_coeff: 0.1
+
+# Training
+batch_size: 8               # smaller than exp 2 — composite memory footprint
+grad_clip: 0.8
+lr: 0.002                   # gate MLP only; M0 and M1 are frozen
+stop_delta: 0
+lr_patience: 20
+lr_factor: 0.8
+
+# === paths ===
+# TODO: once experiment 2 produces a final M1 checkpoint, swap the M1
+# path. baseline-B is used as a placeholder so the config validates and
+# smoke-tests run; M1 = baseline-B isn't a meaningful training run.
+m0_package_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/saved_models/packages/M0-baseline-B.nequip.zip
+m1_package_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/saved_models/packages/M0-baseline-B.nequip.zip
+# m1_package_path: .../saved_models/packages/2-allegro_L_correction.nequip.zip  (once exp 2 lands)
+
+# === hydra runtime directory ===
+run_id: 3-composite_phase_A
+hydra:
+  run:
+    dir: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/runs/${run_id}
+
+# === nequip top-level ===
+run: [train, test]
+
+monitor: val0_epoch/weighted_sum
+chemical_symbols: [C, O, Pt]
+model_type_names: ${chemical_symbols}
+
+data:
+  _target_: nequip.data.datamodule.ASEDataModule
+  train_file_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_train.xyz
+  val_file_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_val.xyz
+  test_file_path: /lustre/orion/mat281/scratch/demirand/projects/sparse_delta/data/optb88/cameron/split_dataset_r5.0_test.xyz
+  exclude_keys:
+    - dipole
+    - model_index
+
+  seed: ${common_seed}
+  transforms:
+    - _target_: nequip.data.transforms.ChemicalSpeciesToAtomTypeMapper
+      model_type_names: ${model_type_names}
+    - _target_: nequip.data.transforms.NeighborListTransform
+      r_max: ${cutoff_radius}
+
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: 8
+    shuffle: true
+  val_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: ${data.train_dataloader.num_workers}
+  test_dataloader: ${data.val_dataloader}
+
+  stats_manager:
+    _target_: nequip.data.CommonDataStatisticsManager
+    dataloader_kwargs:
+      batch_size: ${batch_size}
+    type_names: ${model_type_names}
+
+trainer:
+  _target_: lightning.Trainer
+  accelerator: gpu
+  devices: 1
+  num_nodes: 1
+  enable_checkpointing: true
+  gradient_clip_val: ${grad_clip}
+  max_epochs: 500
+  max_time: 01:00:00:00
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+  logger:
+    _target_: lightning.pytorch.loggers.wandb.WandbLogger
+    project: sparse-delta
+    entity: demiranda-gabriel
+    name: ${run_id}
+    group: 3-composite_phase_A
+    save_dir: ${hydra:runtime.output_dir}
+
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: ${monitor}
+      dirpath: ${hydra:runtime.output_dir}
+      filename: best
+      save_last: true
+
+    - _target_: lightning.pytorch.callbacks.EarlyStopping
+      monitor: ${monitor}
+      min_delta: ${stop_delta}
+      patience: 50          # gate-only training; if it plateaus, accept it
+
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: epoch
+
+training_module:
+  _target_: nequip.train.NequIPLightningModule
+
+  # Loss = E+F MSE (from EnergyForceLoss) augmented with the sparsity
+  # penalty term `mean(λ)` from sparse_delta_core. MetricsManager
+  # normalises coeffs to sum to 1, so the three values below are
+  # relative weights.
+  loss:
+    _target_: nequip.train.EnergyForceLoss
+    per_atom_energy: true
+    coeffs:
+      total_energy: 1.0
+      forces: 1.0
+    extra_metrics:
+      - name: sparsity_penalty
+        coeff: ${sparsity_coeff}
+        # field omitted (None) → GateMeanMetric reads GATE_KEY from the
+        # full preds dict itself; no target needed.
+        metric:
+          _target_: sparse_delta_core.train.GateMeanMetric
+
+  val_metrics:
+    _target_: nequip.train.EnergyForceMetrics
+    coeffs:
+      per_atom_energy_mae: 1.0
+      forces_mae: 1.0
+  train_metrics: ${training_module.val_metrics}
+  test_metrics: ${training_module.val_metrics}
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${lr}
+    # Filter to gate parameters only — M0 and M1 have requires_grad=False
+    # set by build_phase_a_composite, so this saves Adam state.
+    param_groups:
+      _target_: sparse_delta_core.train.trainable_param_group
+
+  lr_scheduler:
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      patience: ${lr_patience}
+      factor: ${lr_factor}
+      min_lr: 1e-6
+    monitor: ${monitor}
+    interval: epoch
+    frequency: 1
+
+  model:
+    _target_: sparse_delta_core.model.build_phase_a_composite
+    m0_package_path: ${m0_package_path}
+    m1_package_path: ${m1_package_path}
+    gate_hidden_dim: ${gate_hidden_dim}
+    gate_depth: ${gate_depth}
+    initial_lambda_mean: ${initial_lambda_mean}
+    # Eager for both: baseline-B carries a pre-patch class snapshot
+    # (legacy hook fallback), so torch.compile would graph-break. The L
+    # M1 from experiment 2 will be repackaged with the patched class
+    # when it lands, at which point this can flip to "compile".
+    compile_mode: eager
+    freeze_m0: true
+    freeze_m1: true
+    wrap_force_stress_output: true
