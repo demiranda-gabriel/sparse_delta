@@ -28,6 +28,23 @@ else
     echo "[install] allegro-private already present, skipping clone"
 fi
 
+# 1b. Apply sparse_delta-local patches to the read-only forks.
+# These are sparse_delta-only modifications; they are NEVER pushed back to
+# the mir-group remotes (see sparse_delta CLAUDE.md gotcha "never push forks").
+# Idempotent: detected by grepping for the patch's distinguishing symbol.
+ALLEGRO_PATCH="${SCRIPT_DIR}/sparse-delta-core/patches/allegro_expose_pre_final_tp_out.patch"
+if [[ -f "${ALLEGRO_PATCH}" ]]; then
+    if grep -q "expose_pre_final_tp_out" allegro-private/allegro/nn/_allegro.py; then
+        echo "[install] allegro pre-final-TP patch already applied, skipping"
+    else
+        echo "[install] applying allegro pre-final-TP patch"
+        # --fuzz=0: refuse to silently apply a patch whose context has
+        # drifted. If upstream Allegro changes the forward, fail loudly so
+        # the patch is regenerated against the new state.
+        (cd allegro-private && patch -p1 --fuzz=0 < "${ALLEGRO_PATCH}")
+    fi
+fi
+
 # 2. uv workspace sync from the project root.
 cd "${PROJECT_ROOT}"
 echo "[install] running uv sync at ${PROJECT_ROOT}"
