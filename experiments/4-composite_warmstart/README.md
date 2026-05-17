@@ -1,10 +1,13 @@
 # 4-composite_warmstart
 
-**Status:** planned
+**Status:** running (queued)
 **Date:** 2026-05-17
 **Outer SHA:** `2677aca`
 **Submodule SHAs:** `nequip-private=74c7689  allegro-private=82d7258  sparse-delta-core=9e10612`
-**WandB:** _filled at submission_ — project `sparse-delta`, group `4-composite_warmstart`
+**SLURM job:** `13516824` on `kozinsky_gpu` (1-day walltime, 200 epoch cap, patience 40).
+**WandB:** _filled once the job starts_ — project `sparse-delta`, group `4-composite_warmstart`
+
+**Smoke (job 13513507):** infra OK — 3 epochs on gpu_test with cu128 torch + cuEquivariance + compile_mode=compile. Train weighted_sum 3.18 → 1.52; val 2.70 → 1.46; λ_mean 0.05 → 0.84 (gate opens fast with tiny M0 + sparsity_coeff=0.1; expected to rebalance once M0 has capacity at the full config sizes). Logs: `_smoke/logs/sd_warmstart_smoke_13513507.{out,err}`.
 
 ## Intent
 
