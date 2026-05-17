@@ -287,12 +287,16 @@ Halo atoms participate in step 3 as neighbor positions (not as readout targets) 
 
 ## 13. Open design choices
 
-- Per-atom vs per-edge gate (start per-atom).
-- Residual `E_0 + λ E_1` vs convex `(1−λ) E_0 + λ E_1` (start residual).
-- Complexity signal: norm vs Mahalanobis vs ensemble vs supervised proxy (start Mahalanobis, no extra training).
-- Gate cutoff function: poly_5 (NequIP-style) vs other smooth bumps (start poly_5, matches existing radial cutoffs).
-- `M0` architecture: Allegro small vs 1-layer NequIP. Allegro preferred (cleaner edge-level decomposition; native to per-edge gating fallback).
-- `M1` architecture: Allegro larger or higher `r_max`. Must remain strictly local.
+> **Status note (2026-05-15):** most of these are now resolved — see §16 for the
+> updated plan and the C0+P1 implementation in `sparse-delta-core`. The
+> bullets below are kept as the historical placeholder set.
+
+- Per-atom vs per-edge gate (start per-atom). **Resolved: per-atom.**
+- Residual `E_0 + λ E_1` vs convex `(1−λ) E_0 + λ E_1` (start residual). **Resolved: residual.**
+- Complexity signal: norm vs Mahalanobis vs ensemble vs supervised proxy (start Mahalanobis, no extra training). **Resolved: learned MLP over C0 + l=1 power spectrum invariants (§16).**
+- Gate cutoff function: poly_5 (NequIP-style) vs other smooth bumps (start poly_5, matches existing radial cutoffs). **Resolved: sigmoid for warm-up, swap to poly_5 once `s_i` is calibrated.**
+- `M0` architecture: Allegro small vs 1-layer NequIP. **Resolved: Allegro with `num_layers >= 2` (committed for this project; precludes 1-layer NequIP M0).**
+- `M1` architecture: Allegro larger or higher `r_max`. Must remain strictly local. **In progress: experiment 2 trains the L-config standalone as the warm-start checkpoint.**
 
 ---
 
@@ -310,10 +314,92 @@ Halo atoms participate in step 3 as neighbor positions (not as readout targets) 
 
 ## 15. Glossary (for the new project)
 
-- **`M0`**: small, cheap MLIP. Runs everywhere. Target: `Allegro_S` or 1-layer NequIP.
+- **`M0`**: small, cheap MLIP. Runs everywhere. Target: `Allegro_S` (`num_layers >= 2`; see §16).
 - **`M1`**: larger correction MLIP. Strictly local. Runs only on active subgraph.
 - **`s_i`**: per-atom complexity score, derived from `M0` hidden features.
 - **`λ_i = c(s_i)`**: per-atom gate, smooth and compactly supported.
 - **Active set `A`**: `{i : λ_i > 0}`.
 - **Halo `H`**: atoms within `r_max^{M1}` of any active atom but with `λ = 0` themselves.
 - **Compactly-supported smooth cutoff**: function that is identically zero below a threshold and `C^k`-smooth across the boundary (e.g. poly_5 = `1 − 6u⁵ + 15u⁴ − 10u³`).
+- **C0**: per-atom sum-pool of Allegro's `edge_features` (DenseNet concat of per-layer l=0 latents). Trivially SO(3)+parity invariant. Shape `[N, num_scalar_features · (num_layers + 1)]`.
+- **P1**: per-atom l=1 cross-channel power spectrum at the pre-final Allegro TP. Diagonal `‖h_c‖²` (C terms) + off-diagonal `⟨h_a, h_b⟩` for `a < b` (`C(C-1)/2` terms). All parity-even after squaring.
+
+---
+
+## 16. Updated plan (2026-05-15): C0 + P1 invariants, phased training
+
+This section supersedes some of the "start with X" placeholders in §7 and §13.
+Decisions made after the equivariant-invariants probe
+([`1-m0_equivariant_invariants`](../experiments/1-m0_equivariant_invariants/))
+and the C0/P1 extractor implementation in
+[`sparse_delta_core.features`](../software/sparse-delta-core/sparse_delta_core/features.py).
+
+### 16.1 Resolved choices
+
+| Decision | Value |
+|---|---|
+| `M0` family | Allegro with `num_layers >= 2` (committed; no 1-layer NequIP M0) |
+| `M1` family | Allegro, strictly local at any depth |
+| Gate granularity | per-atom (per-edge kept as fallback if active fraction is too high) |
+| Blend | residual `E = E_0 + Σ_i λ_i E_1^i` |
+| Gate input | C0 only as of 2026-05-15 (see §16.2). P1 plumbing kept defensive but unused. |
+| Gate head | small MLP (depth 2, width 64, silu, scalar out) |
+| Gate function | shifted sigmoid `σ(s − b)` during warm-up; switch to poly_5 once `s_i` is calibrated |
+| Initial gate bias | set `b` so `mean(λ) ≈ 0.05` at step 0 |
+| Sparsity loss | `α · mean(λ)`, α tuned to target ~20–30% active |
+| `M0` weights | frozen during gate warm-up; optionally unfrozen at small LR (~1e-5) later (§16.3) |
+| `M1` weights | warm-started from [`2-allegro_L_correction`](../experiments/2-allegro_L_correction/) standalone checkpoint |
+
+### 16.2 Gate input: C0 only (per atom)
+
+**Decision (2026-05-15):** Gate input is **C0 only**. P1 (l=1 cross-channel power spectrum) is left implemented in [`M0InvariantFeatures`](../software/sparse-delta-core/sparse_delta_core/features.py) and reachable via a `compute_p1: bool` flag, but is not consumed by the composite. The motivation: keep the first cut simple, get the phased training loop running on the smaller input, and revisit P1 only if C0 alone underperforms on the validation split. Experiment 1 already showed `s_power_l1o_norm` is sharper than `s_F2c_norm` for separating Pt-only / mixed / CO-only, so this is a *temporary simplification*, not a permanent verdict.
+
+- **C0** = `LAST_LAYER_SCALARS_KEY`. Shape `[N, num_scalar_features · (num_layers + 1)]`. l=0 by construction.
+- *(P1 = `L1_POWER_DIAG_KEY` ∪ `L1_POWER_OFFDIAG_KEY`; available but unused for now. Re-enable by passing `compute_p1=True` to the extractor and concatenating the fields in the gate.)*
+
+Feed C0 directly through the gate MLP → `s_i`. C0 is differentiable w.r.t. positions through M0, so `∂λ_i/∂r_a` is well-defined and the gate-gradient force term (§4) is captured by autograd.
+
+**Dimensionality:** baseline-B M0 → 96 features per atom. L-config M0 (if ever swapped in: `num_scalar_features=128`, `num_layers=4`) → 640 features per atom. Both fit comfortably as the input to a depth-2 width-64 silu MLP.
+
+### 16.3 Joint M0 training (optional, gated by phase)
+
+`M0InvariantFeatures` keeps M0's parameters live by default, so `loss.backward()` reaches them. To freeze, set `requires_grad = False` on `extractor.m0.parameters()`. Phased schedule:
+
+- **Phase A** — freeze M0 and M1; train only the gate MLP. Sigmoid gate. Tens of epochs.
+- **Phase B** — keep M0 frozen; unfreeze M1 (warm-started from experiment 2). Joint fine-tune E + F loss. Sparsity penalty active.
+- **Phase C** (opt-in) — unfreeze M0 at small LR (~1e-5 vs main 1e-3), separate optimizer parameter group. Held-out "M0-easy" subset (bulk-Pt frames) is the canary: if M0 starts degrading there, M0 has begun off-loading work to M1 — fall back to Phase B.
+- **Phase D** — histogram `s_i` across the val set, pick `(s_low, s_high)` from quantiles, swap sigmoid for poly_5 cutoff. Short fine-tune to absorb the kink. Only after this does the active-subgraph sparse two-pass (§10) become exact.
+
+Risks of unfreezing M0:
+- M0 stops being a good standalone baseline (loses transfer/interpretability).
+- Gate signal can collapse (M0 features pushed to whatever makes the gate trivial).
+- Co-adaptation: composite no longer cleanly factorizes into "M0 cheap forward + sparse M1 correction".
+
+If any of those show up, fall back to keeping M0 frozen — Phase C is opt-in, not required.
+
+### 16.4 Implementation pointers
+
+- C0 (and optionally P1) extraction: [`sparse_delta_core.features.M0InvariantFeatures`](../software/sparse-delta-core/sparse_delta_core/features.py). Pass `compute_p1=False` (recommended for the C0-only gate; default `True` for back-compat) to skip the P1 work on every forward. Pure functions `l1_power_spectrum`, `sum_pool_to_receiver`, `upper_triangle_pairs` remain importable on their own.
+- Field key strings registered with nequip via entry point `init_always = "sparse_delta_core"`. Use the constants in [`sparse_delta_core._keys`](../software/sparse-delta-core/sparse_delta_core/_keys.py), not magic strings.
+- **Compile-mode resolution:** the C0-only gate path is compile-clean by construction — `data[EDGE_FEATURES_KEY]` is already an official Allegro output and no hooks are involved. The local Allegro patch ([`software/sparse-delta-core/patches/allegro_expose_pre_final_tp_out.patch`](../software/sparse-delta-core/patches/allegro_expose_pre_final_tp_out.patch), applied by [`software/install.sh`](../software/install.sh) with `--fuzz=0`) remains in place as **defensive infrastructure** so P1 can be re-enabled without re-doing this work. When `compute_p1=False` the patched flag is left at False and the dict-write branch never fires.
+- **Legacy-package fallback:** `torch.package` snapshots the `Allegro_Module` class at packaging time, so M0 packages built *before* the patch (e.g. `M0-baseline-B.nequip.zip` inherited from the sibling project) carry the old class. `M0InvariantFeatures` detects this at init (`hasattr(allegro_mod, "_expose_pre_final_tp_out")`) and falls back to a forward hook on `tps[num_layers - 2]`. The fallback is correct but cannot be compiled. Train fresh M0s with the patched code for compile compatibility, or repackage the legacy M0 once.
+- **Open issue (low priority for baseline-B):** [`M0InvariantFeatures`](../software/sparse-delta-core/sparse_delta_core/features.py) currently picks the first l=1 slot it finds. Fine for baseline-B (`1x0e + 1x1o` pre-final). For an M0 with both `1o` and `1e` paths surviving, half the l=1 information would be silently dropped. Generalize to stack all l>0 slots before promoting M0.
+- **Not yet implemented:** gate MLP, composite model + ForceStressOutput wiring, sparsity penalty callback. These go into [`sparse_delta_core/nn/`](../software/sparse-delta-core/sparse_delta_core/nn/), [`sparse_delta_core/model/`](../software/sparse-delta-core/sparse_delta_core/model/), and [`sparse_delta_core/train/`](../software/sparse-delta-core/sparse_delta_core/train/) respectively.
+
+### 16.5 Verification protocol before any training
+
+Items 1–3 are now automated in [`tests/test_features.py`](../software/sparse-delta-core/tests/test_features.py), [`tests/test_gate.py`](../software/sparse-delta-core/tests/test_gate.py), and [`tests/test_composite.py`](../software/sparse-delta-core/tests/test_composite.py) (32 tests passing as of 2026-05-15).
+
+1. ✓ **Shape + invariance tests** — C0/P1 fields, rotation invariance of the pure functions, in-model rotation invariance. Gradient-flow test on the C0 path confirms `m0.parameters()` get non-zero grads when `LAST_LAYER_SCALARS_KEY.sum().backward()` is invoked (Phase C readiness).
+2. ✓ **Composite-model autograd test** — 2-atom C–Pt dimer, finite-difference forces vs autograd forces, parametrized over `λ ∈ {0.001, 0.5, 0.95}` (constant-λ regimes) and once with perturbed gate weights so `λ` actually depends on positions. The perturbed-gate case verifies the gate-gradient force term `(∂λ_i/∂r) · E_1^i` from §4 is captured by autograd — this is the test that fires if anyone ever `.detach()`s C0.
+3. ✓ **Conservation test** — 5-step Velocity-Verlet NVE on the C–Pt dimer with non-trivial gate and M1 weights. Total-energy drift is checked against the KE scale. A non-conservative implementation drifts ~10–100× the threshold per step.
+4. **Sparsity sanity** — histogram `λ_i` on a val frame after Phase A. If unimodal at 0 (or at 1), the gate hasn't learned anything; revisit input features, initialization, or sparsity-penalty strength. **Not yet automated** (needs a trained checkpoint).
+
+### 16.6 Sequencing
+
+1. Finish experiment 2 (standalone L Allegro on cameron) → M1 warm-start checkpoint. *(in flight as of 2026-05-15)*
+2. ~~Address `M0InvariantFeatures` review items: compile-mode TODO~~ — done 2026-05-15 (patch + dual-path). Gradient-flow test done same day. Multi-slot l=1 generalization deferred — low priority while baseline-B is M0 and while gate input is C0 only.
+3. ~~Build gate MLP + composite + ForceStressOutput wiring~~ — done 2026-05-15 in `sparse_delta_core/{nn,model,train}/`. Composite is `GraphModuleMixin`-compliant; inner ForceStressOutput modules are auto-disabled at construction.
+4. ~~Run verification protocol (§16.5) on a 2-atom toy system~~ — done 2026-05-15: finite-diff at λ ∈ {0.001, 0.5, 0.95} + perturbed-gate finite-diff + 5-step NVE drift.
+5. ~~Build Phase A training plumbing~~ — done 2026-05-15: factory `build_phase_a_composite` (freezes M0+M1, wraps FSO), `GateMeanMetric` sparsity penalty, `trainable_param_group` optimizer filter, `experiments/3-composite_phase_A/{config.yaml, train.sh, README.md}`. **Blocked on experiment 2** for the M1 warm-start checkpoint — the config currently uses baseline-B as a placeholder so plumbing validates but a real Phase A run is not yet possible.
+6. Phase A training (once exp 2 lands and `m1_package_path` is swapped) → B → evaluate. Phase C and D only if Phase B results justify. If C0-only gate underperforms, revisit P1 by flipping `compute_p1=True` and concatenating before any architectural changes.

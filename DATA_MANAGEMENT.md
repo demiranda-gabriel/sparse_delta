@@ -27,7 +27,11 @@ Committed; GitHub is source-of-truth.
 
 Bulk data; mirrored to `gdrive:projects/sparse_delta/<subpath>/` via `gdrive-push` / `gdrive-pull` / `gdrive-archive`. Not committed. Persistent local copy lives on holylabs (symlinked in at runtime).
 
-- `data/` → `gdrive:projects/sparse_delta/data/`. Datasets. Symlink target: `/n/holylabs/LABS/kozinsky_lab/Users/demiranda/projects/sparse_delta/data/`. Currently absent; symlink in once dataset is staged. See [`memory/project_dataset.md`].
+- `data/` → **shared with sibling project**, pulled from `gdrive:projects/multifidelity/data/` (not `sparse_delta/data/`). Restore with `PROJECT_NAME=multifidelity gdrive-pull data/data-YYYY-MM-DD.tar.gz data` then `tar -xzf` in place. Current layout:
+  - `optb88/bulk_pt/` — bulk-Pt train/val/test splits, EOS-augmented training set, relabel audit, EOS curve.
+  - `optb88/cameron/` — Cameron CO/Pt nanoparticle + slab dataset; `full_dataset_r5.xyz` + `split_dataset_r5.0_{train,val,test}.xyz`.
+  - `original/` — source `full_dataset_r5.xyz` and the `multi_preprocess.py` / `preprocess.ipynb` used to derive the splits.
+  Authoritative copy stays in the multifidelity project's Drive subtree; do **not** re-archive into `gdrive:projects/sparse_delta/data/` unless sparse_delta diverges from the shared dataset.
 - `models/` → `gdrive:projects/sparse_delta/models/`. Pre-trained model artifacts (e.g. packaged M0). Symlink target: `/n/holylabs/.../models/`. Currently absent.
 - `saved_models/` → `gdrive:projects/sparse_delta/saved_models/`. Curated `.nequip.zip` packages + `best_checkpoint_paths.csv` registry. Currently a real directory on scratch; promote to a holylabs symlink once that path is provisioned.
 

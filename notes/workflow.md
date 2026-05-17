@@ -23,10 +23,10 @@ Nothing authoritative lives on scratch. If it matters, copy it to `experiments/<
 
 ## Per-experiment recipe
 
-1. Copy `experiments/_template/` → `experiments/<name>/`.
+1. Pick the next experiment number `N = max(existing N) + 1` from the index in [`../experiments/README.md`](../experiments/README.md) (oldest is `0`). Copy `experiments/_template/` → `experiments/<N>-<exp_name>/`.
 2. Fill the README header (status, intent, hypothesis, success criteria, outer + submodule SHAs).
 3. Commit and push the experiment directory **before** `sbatch`. This pins the SHA to the submitted state. Bundle any submodule pointer bumps in the same commit.
-4. Add a row to the `## Index` table in [`../experiments/README.md`](../experiments/README.md) (top of table, reverse-chronological) in the **same** commit that creates the experiment directory.
+4. Add a row to the `## Index` table in [`../experiments/README.md`](../experiments/README.md) (top of table, reverse-chronological by date; the `N` column is monotonically increasing) in the **same** commit that creates the experiment directory.
 5. Run via SLURM. SLURM stdout/stderr live next to the run:
    - sweeps: `<exp>/<tag>/logs/`
    - single runs: `runs/<name>/logs/`
