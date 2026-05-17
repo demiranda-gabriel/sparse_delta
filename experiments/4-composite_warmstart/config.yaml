@@ -165,6 +165,12 @@ training_module:
       # the lazy PT2 compilation on first forward (the model is wrapped
       # in CompileGraphModel which JITs per input-key signature).
       compile_mode: compile
+      # @model_builder requires these three. nequip-train normally
+      # injects them via _CURRENT_MODEL_BUILDER_DEFAULTS, but the
+      # outer `nequip.model.modify` wrapper breaks that propagation,
+      # so spell them out here.
+      seed: ${common_seed}
+      model_dtype: float32
 
       r_max: ${cutoff_radius}
       type_names: ${model_type_names}

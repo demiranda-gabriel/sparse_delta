@@ -148,6 +148,12 @@ training_module:
     model:
       _target_: sparse_delta_core.model.build_warmstart_composite
       compile_mode: compile
+      # @model_builder requires these three. nequip-train normally
+      # injects them via _CURRENT_MODEL_BUILDER_DEFAULTS, but the
+      # outer `nequip.model.modify` wrapper breaks that propagation,
+      # so spell them out here.
+      seed: ${common_seed}
+      model_dtype: float32
 
       r_max: ${cutoff_radius}
       type_names: ${model_type_names}
