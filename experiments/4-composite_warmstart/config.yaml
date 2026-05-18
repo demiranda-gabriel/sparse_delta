@@ -161,10 +161,14 @@ training_module:
       - modifier: enable_CuEquivarianceContracter
     model:
       _target_: sparse_delta_core.model.build_warmstart_composite
-      # `@model_builder` consumes compile_mode; turning it on triggers
-      # the lazy PT2 compilation on first forward (the model is wrapped
-      # in CompileGraphModel which JITs per input-key signature).
-      compile_mode: compile
+      # compile_mode: eager (NOT compile).
+      # Bisect (jobs 13687384 / 13687385): PT2 compile reproducibly NaNs
+      # in CompiledFunctionBackward's 8th output around epoch 8-15 with
+      # this composite, regardless of cuEquivariance. Eager + cuEquivariance
+      # (B1, run 8mjd3yhz) trained 30 epochs stably; compile + no-cueq
+      # (B2, job 13687385) NaN'd identically to v1/v2. Keep cuEquivariance
+      # active via the modifier above for its runtime contracter swap.
+      compile_mode: eager
       # @model_builder requires these three. nequip-train normally
       # injects them via _CURRENT_MODEL_BUILDER_DEFAULTS, but the
       # outer `nequip.model.modify` wrapper breaks that propagation,

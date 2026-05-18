@@ -158,7 +158,7 @@ training_module:
       - modifier: enable_CuEquivarianceContracter
     model:
       _target_: sparse_delta_core.model.build_warmstart_composite
-      compile_mode: compile
+      compile_mode: eager       # see ../config.yaml comment; PT2 compile NaNs
       seed: ${common_seed}
       model_dtype: float32
 

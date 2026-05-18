@@ -9,6 +9,12 @@
 
 **Smoke (job 13513507):** infra OK — 3 epochs on gpu_test with cu128 torch + cuEquivariance + compile_mode=compile. Train weighted_sum 3.18 → 1.52; val 2.70 → 1.46; λ_mean 0.05 → 0.84 (gate opens fast with tiny M0 + sparsity_coeff=0.1; expected to rebalance once M0 has capacity at the full config sizes). Logs: `_smoke/logs/sd_warmstart_smoke_13513507.{out,err}`.
 
+**Acceleration bisect (2026-05-18):** v1/v2 fast runs with `compile_mode: compile` + cuEquivariance both NaN'd mid-training (v1: epoch 8 step 118 wp2qrft3; v2: epoch 15 dd394qyh). _diag (eager, no cueq, 8xtfq0f3) trained 30 epochs cleanly. Bisect runs:
+- `_diag_b1` (job 13687384, eager + cuEquivariance ON): 30 epochs clean (run 8mjd3yhz). val_weighted_sum 0.13 → 0.075, val_forces_mae 0.13.
+- `_diag_b2` (job 13687385, compile + cuEquivariance OFF): FAILED 9:27 with `RuntimeError: Function 'CompiledFunctionBackward' returned nan values in its 8th output.`
+
+**Conclusion: PT2 compile is the NaN source, cuEquivariance is innocent.** Production config now `compile_mode: eager` with cuEquivariance modifier kept on. Upstream PT2 compile + warm-start composite bug needs separate investigation; not blocking science.
+
 ## Intent
 
 First training run of the **from-scratch warm-start composite** described in [`notes/m1_warmstart_design.md`](../../notes/m1_warmstart_design.md). M0 and M1 are both fresh `Allegro_Module`s built in a single `SequentialGraphNetwork`; M1's `tensor_features_in_field` is **aliased** to M0's `_allegro_pre_final_tp_out` so M1's strided tensor input is the pre-final TP output of M0 — every irrep there carries gradient signal from the energy/force loss.
