@@ -58,7 +58,7 @@ if cuda is None or dev == 0:
     sys.exit(1)
 PY
 
-LAST_CKPT="$PROJECT_ROOT/runs/4-composite_warmstart_fast/last.ckpt"
+LAST_CKPT="$PROJECT_ROOT/runs/4-composite_warmstart_fast_v2/last.ckpt"
 if [[ -f "$LAST_CKPT" ]]; then
     echo "[chain] resuming from $LAST_CKPT"
     CKPT_OVERRIDE="+ckpt_path=$LAST_CKPT"

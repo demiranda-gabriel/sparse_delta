@@ -17,12 +17,12 @@ common_seed: 217
 cutoff_radius: 5.0
 
 gate_function: sigmoid
-gate_initial_lambda_mean: 0.05
-sparsity_coeff: 0.1
+gate_initial_lambda_mean: 0.01   # v2: was 0.05; start gate even more closed
+sparsity_coeff: 1.0              # v2: was 0.1; equal weight to E+F to hold λ down
 
 batch_size: 4
-grad_clip: 0.8
-lr: 0.001
+grad_clip: 0.3                   # v2: was 0.8; tighter to catch grad-explosion spikes
+lr: 0.0005                       # v2: was 1e-3; lower joint-training instability risk
 stop_delta: 0
 lr_patience: 20
 lr_factor: 0.8
@@ -31,7 +31,11 @@ target_max_epochs: 200
 
 data_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt
 
-run_id: 4-composite_warmstart_fast
+# v2 run_id — distinct from v1 (run wp2qrft3) so this starts from random
+# init in a separate runs/ dir and a separate WandB run. v1 NaN'd at
+# epoch 8 step 118 due to gate saturation (λ → 1.0 by epoch 3) + grad
+# explosion. Knobs above target both failure modes.
+run_id: 4-composite_warmstart_fast_v2
 project_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta
 hydra:
   run:
