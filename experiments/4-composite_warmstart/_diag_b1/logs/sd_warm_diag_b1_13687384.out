@@ -1,0 +1,3 @@
+[init] torch=2.11.0+cu128  cuda=12.8  device_count=1
+  device[0] = NVIDIA A100-SXM4-40GB MIG 3g.20gb
+[init] NaNBatchLogger ready: <class 'sparse_delta_core.train.nan_logger.NaNBatchLogger'>
