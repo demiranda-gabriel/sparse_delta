@@ -1,0 +1,191 @@
+# 4-composite_warmstart / _diag_b2
+#
+# Bisect step B2: compile + cuEquivariance modifier OFF.
+#
+# _diag (eager, no cueq, run 8xtfq0f3) trained 30 epochs cleanly.
+# _fast v1/v2 (compile + cueq) both NaN'd mid-training. This run keeps
+# compile ON but turns cuEquivariance OFF.
+#
+# If this one NaNs → PT2 compile alone reproduces the bug.
+# If it doesn't → compile is innocent; cueq is the culprit (run B1
+# covers that side).
+#
+# Note: detect_anomaly only catches NaN-producing ops in eager mode.
+# Under PT2 compile the anomaly hooks are bypassed inside captured
+# subgraphs, so the autograd traceback may not pinpoint the op — but
+# the NaNBatchLogger still triggers on the first NaN step and dumps
+# the offending batch.
+
+common_seed: 217
+cutoff_radius: 5.0
+
+gate_function: sigmoid
+gate_initial_lambda_mean: 0.01
+sparsity_coeff: 1.0
+
+batch_size: 4
+grad_clip: 0.3
+lr: 0.0005
+stop_delta: 0
+lr_patience: 20
+lr_factor: 0.8
+early_stop_patience: 100         # don't let early-stop interfere — we want to hit the NaN
+target_max_epochs: 30            # we expect NaN around epoch 15; 30 is plenty
+
+data_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt
+
+run_id: 4-composite_warmstart_diag_c2
+project_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta
+hydra:
+  run:
+    dir: ${project_root}/runs/${run_id}
+
+run: [train]                     # skip test; diagnostic only
+
+monitor: val0_epoch/weighted_sum
+chemical_symbols: [C, O, Pt]
+model_type_names: ${chemical_symbols}
+
+data:
+  _target_: nequip.data.datamodule.ASEDataModule
+  train_file_path: ${data_root}/split_train.xyz
+  val_file_path: ${data_root}/split_val.xyz
+  test_file_path: ${data_root}/split_test.xyz
+  exclude_keys:
+    - dipole
+    - model_index
+
+  seed: ${common_seed}
+  transforms:
+    - _target_: nequip.data.transforms.ChemicalSpeciesToAtomTypeMapper
+      model_type_names: ${model_type_names}
+    - _target_: nequip.data.transforms.NeighborListTransform
+      r_max: ${cutoff_radius}
+
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: 2
+    shuffle: true
+  val_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: ${data.train_dataloader.num_workers}
+  test_dataloader: ${data.val_dataloader}
+
+  stats_manager:
+    _target_: nequip.data.CommonDataStatisticsManager
+    dataloader_kwargs:
+      batch_size: ${batch_size}
+    type_names: ${model_type_names}
+
+trainer:
+  _target_: lightning.Trainer
+  accelerator: gpu
+  devices: 1
+  num_nodes: 1
+  enable_checkpointing: true
+  gradient_clip_val: ${grad_clip}
+  max_epochs: ${target_max_epochs}
+  max_time: 00:11:00:00
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+  detect_anomaly: true           # critical: surfaces the NaN-producing op stack trace
+
+  logger:
+    _target_: lightning.pytorch.loggers.wandb.WandbLogger
+    project: sparse-delta
+    entity: demiranda-gabriel
+    name: ${run_id}
+    group: 4-composite_warmstart
+    save_dir: ${hydra:runtime.output_dir}
+
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: ${monitor}
+      dirpath: ${hydra:runtime.output_dir}
+      filename: best
+      save_last: true
+
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: epoch
+
+    # NaN scanner — stops cleanly on first NaN train step.
+    - _target_: sparse_delta_core.train.NaNBatchLogger
+      check_params: true
+
+training_module:
+  _target_: nequip.train.NequIPLightningModule
+
+  loss:
+    _target_: nequip.train.EnergyForceLoss
+    per_atom_energy: true
+    coeffs:
+      total_energy: 1.0
+      forces: 1.0
+    extra_metrics:
+      - name: sparsity_penalty
+        coeff: ${sparsity_coeff}
+        metric:
+          _target_: sparse_delta_core.train.GateMeanMetric
+
+  val_metrics:
+    _target_: nequip.train.EnergyForceMetrics
+    coeffs:
+      per_atom_energy_mae: 1.0
+      forces_mae: 1.0
+  train_metrics: ${training_module.val_metrics}
+  test_metrics: ${training_module.val_metrics}
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${lr}
+
+  lr_scheduler:
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      patience: ${lr_patience}
+      factor: ${lr_factor}
+      min_lr: 1e-6
+    monitor: ${monitor}
+    interval: epoch
+    frequency: 1
+
+  # B2: compile + no cuEquivariance modifier.
+  model:
+    _target_: sparse_delta_core.model.build_warmstart_composite
+    compile_mode: compile
+    seed: ${common_seed}
+    model_dtype: float32
+
+    r_max: ${cutoff_radius}
+    type_names: ${model_type_names}
+
+    m0_radial_chemical_embed:
+      _target_: allegro.nn.TwoBodyBesselScalarEmbed
+      num_bessels: 8
+      bessel_trainable: false
+      polynomial_cutoff_p: 6
+    m0_radial_chemical_embed_dim: 128
+    m0_l_max: 2
+    m0_parity: true
+    m0_num_layers: 2
+    m0_num_scalar_features: 32
+    m0_num_tensor_features: 16
+    m0_allegro_mlp_hidden_layers_width: 64
+    m0_readout_mlp_hidden_layers_width: 32
+
+    m1_num_layers: 1
+    m1_num_scalar_features: 128
+    m1_num_tensor_features: 16
+    m1_allegro_mlp_hidden_layers_width: 128
+    m1_readout_mlp_hidden_layers_width: 64
+
+    gate_edge_hidden_dim: 64
+    gate_node_hidden_dim: 64
+    gate_node_hidden_depth: 2
+    gate_function: ${gate_function}
+    gate_initial_lambda_mean: ${gate_initial_lambda_mean}
+
+    avg_num_neighbors: 30.0
+    do_derivatives: true
