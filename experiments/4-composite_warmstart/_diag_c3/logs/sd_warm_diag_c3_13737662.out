@@ -1,0 +1,31 @@
+[init] torch=2.11.0+cu128  cuda=12.8  device_count=1
+  device[0] = NVIDIA A100-SXM4-40GB MIG 3g.20gb
+[init] NaNBatchLogger ready: <class 'sparse_delta_core.train.nan_logger.NaNBatchLogger'>
+[chain] no last.ckpt found — starting fresh
+[2026-05-18 21:53:57,574][nequip.scripts.train][INFO] - [rank: 0] Starting fresh training ...
+[2026-05-18 21:53:57,577][nequip.utils.versions.package_versions][INFO] - [rank: 0] Version Information:
+[2026-05-18 21:53:57,577][nequip.utils.versions.package_versions][INFO] - [rank: 0] torch 2.11.0+cu128
+[2026-05-18 21:53:57,577][nequip.utils.versions.package_versions][INFO] - [rank: 0] e3nn 0.6.0
+[2026-05-18 21:53:57,577][nequip.utils.versions.package_versions][INFO] - [rank: 0] nequip 0.17.1
+[2026-05-18 21:53:57,577][nequip.utils.versions.package_versions][INFO] - [rank: 0] allegro 0.8.2
+[2026-05-18 21:53:57,577][nequip.utils.versions.package_versions][INFO] - [rank: 0] sparse_delta_core._keys None
+[2026-05-18 21:53:57,577][nequip.scripts.train][INFO] - [rank: 0] This `nequip-train` run will perform the following tasks: ['train']
+[2026-05-18 21:53:57,577][nequip.scripts.train][INFO] - [rank: 0] and use the output directory provided by Hydra: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/4-composite_warmstart_diag_c3
+[2026-05-18 21:53:58,020][nequip.scripts.train][INFO] - [rank: 0] Building datamodule ...
+[2026-05-18 21:53:58,029][nequip.data.datamodule._base_datamodule][INFO] - [rank: 0] Found 1 training dataset(s), 1 validation dataset(s), 1 test dataset(s), and 0 predict dataset(s).
+[2026-05-18 21:53:58,064][pytorch_lightning.utilities.rank_zero][INFO] - You have turned on `Trainer(detect_anomaly=True)`. This will significantly slow down compute speed and is recommended only for model debugging.
+[2026-05-18 21:53:58,064][pytorch_lightning.utilities.rank_zero][INFO] - GPU available: True (cuda), using: 1 GPU (cuda)
+[2026-05-18 21:53:58,064][pytorch_lightning.utilities.rank_zero][INFO] - TPU available: False, using: 0 TPU cores
+[2026-05-18 21:53:58,064][pytorch_lightning.utilities.rank_zero][INFO] - HPU available: False, using: 0 HPUs
+[2026-05-18 21:53:58,065][pytorch_lightning.utilities.rank_zero][INFO] - 💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+[2026-05-18 21:54:01,736][nequip.data.stats_manager][INFO] - [rank: 0] Computed data statistics:
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] num_neighbors_mean: 21.26209853345819
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_type_num_neighbors_mean_C: 12.902882130789102
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_type_num_neighbors_mean_O: 10.65350824885709
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_type_num_neighbors_mean_Pt: 25.186197991627665
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_atom_energy_mean: -4.611572294569534
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] forces_rms: 2.7702254360720606
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_type_forces_rms_C: 4.946019216139332
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_type_forces_rms_O: 4.861636719644115
+[2026-05-18 21:54:01,737][nequip.data.stats_manager][INFO] - [rank: 0] per_type_forces_rms_Pt: 0.9479949496296197
+[2026-05-18 21:54:01,741][nequip.scripts.train][INFO] - [rank: 0] Building model and training_module from scratch ...

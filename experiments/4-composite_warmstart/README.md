@@ -13,7 +13,17 @@
 - `_diag_b1` (job 13687384, eager + cuEquivariance ON): 30 epochs clean (run 8mjd3yhz). val_weighted_sum 0.13 → 0.075, val_forces_mae 0.13.
 - `_diag_b2` (job 13687385, compile + cuEquivariance OFF): FAILED 9:27 with `RuntimeError: Function 'CompiledFunctionBackward' returned nan values in its 8th output.`
 
-**Conclusion: PT2 compile is the NaN source, cuEquivariance is innocent.** Production config now `compile_mode: eager` with cuEquivariance modifier kept on. Upstream PT2 compile + warm-start composite bug needs separate investigation; not blocking science.
+**Production config now `compile_mode: eager` with cuEquivariance modifier kept on.** Eager + cueq is the supported path for science training.
+
+**Root-cause bisect (2026-05-18, second pass):** four additional gpu_test runs (`_diag_c1/c2/c3` + the offline C5 inspection):
+- `_diag_c1` (compile + `clone_warmstart_tensor: true`): NaN @ 9:13. → dict-alias on `_allegro_pre_final_tp_out` is NOT the cause.
+- `_diag_c2` (compile + `TORCHINDUCTOR_CUDAGRAPHS=0 / FALLBACK_RANDOM=1 / COMPILE_THREADS=1`): NaN @ 9:15. → CUDA-graph capture / RNG / multi-thread codegen NOT the cause.
+- `_diag_c3` (compile + `do_derivatives=false` + `EnergyOnlyLoss`): **30 epochs clean** (run k6zdrqm6, 11:38).
+- C5 (offline): the "8th output" of `CompiledFunctionBackward` lands on parameter slot 0, the first M0 weight (`m0_radial_chemical_embed.type_embed.center_embed.weight`) — i.e. the NaN propagates back through the whole model and trips anomaly when accumulating into the earliest parameter.
+
+**Root cause: PT2 compile's handling of the force-backward graph** (the `autograd.grad(E, positions)` inside `ForceStressOutput` for conservative forces) reproducibly returns NaN gradients in the compiled backward pass for the warm-start composite. Energy-only compiles cleanly. cuEquivariance, dict aliasing, and Inductor nondeterminism are all innocent.
+
+Workarounds for future PT2 use: compile only the energy-net subgraph (exclude `ForceStressOutput`'s autograd-grad block), or use TorchScript/AOT-Inductor for inference where double-backward isn't required. Not blocking science — eager + cueq covers training; AOT-Inductor for inference is a separate codepath that may be unaffected (forward-only graph capture).
 
 ## Intent
 

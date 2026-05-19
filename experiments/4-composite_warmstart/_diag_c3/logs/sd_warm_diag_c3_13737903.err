@@ -1,0 +1,31 @@
+wandb: WARNING The anonymous setting has no effect and will be removed in a future version.
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /n/home04/demiranda/.netrc.
+wandb: Currently logged in as: demiranda-gabriel to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/4-composite_warmstart_diag_c3/wandb/run-20260518_215627-k6zdrqm6
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run 4-composite_warmstart_diag_c3
+wandb: ⭐️ View project at https://wandb.ai/demiranda-gabriel/sparse-delta
+wandb: 🚀 View run at https://wandb.ai/demiranda-gabriel/sparse-delta/runs/k6zdrqm6
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:881: Checkpoint directory /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/4-composite_warmstart_diag_c3 exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-848a657a-efa3-57e0-9cb0-f78995e946f1]
+
+  | Name          | Type           | Params | Mode  | FLOPs
+-----------------------------------------------------------------
+0 | model         | ModuleDict     | 113 K  | train | 0    
+1 | loss          | MetricsManager | 0      | train | 0    
+2 | train_metrics | MetricsManager | 0      | train | 0    
+3 | val_metrics   | ModuleList     | 0      | train | 0    
+4 | test_metrics  | ModuleList     | 0      | train | 0    
+-----------------------------------------------------------------
+113 K     Trainable params
+0         Non-trainable params
+113 K     Total params
+0.452     Total estimated model params size (MB)
+116       Modules in train mode
+0         Modules in eval mode
+0         Total Flops
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/_inductor/compile_fx.py:322: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+W0518 21:56:47.974000 4021000 torch/_inductor/utils.py:1731] [0/0] Not enough SMs to use max_autotune_gemm mode

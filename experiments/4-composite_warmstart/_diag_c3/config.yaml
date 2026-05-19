@@ -117,16 +117,14 @@ trainer:
 training_module:
   _target_: nequip.train.NequIPLightningModule
 
-  # C3: energy-only loss to match do_derivatives=false. Removing the
-  # `forces` term short-circuits the ForceStressOutput-driven backward
-  # pass, which is the longest autograd chain through positions in the
-  # composite. If C3 trains 30 epochs clean, the PT2 NaN is on that
-  # force-backward subgraph specifically.
+  # C3: energy-only loss to match do_derivatives=false. EnergyOnlyLoss /
+  # EnergyOnlyMetrics skip the ForceStressOutput-driven backward pass
+  # entirely (no positions.requires_grad and no force-MSE term), which
+  # is the longest autograd chain in the composite. If C3 trains 30
+  # epochs clean, the PT2 NaN is on the force-backward subgraph.
   loss:
-    _target_: nequip.train.EnergyForceLoss
-    per_atom_energy: true
-    coeffs:
-      total_energy: 1.0
+    _target_: nequip.train.EnergyOnlyLoss
+    per_atom_energy: true       # coeffs arg removed: EnergyOnlyLoss has a fixed coeff=1
     extra_metrics:
       - name: sparsity_penalty
         coeff: ${sparsity_coeff}
@@ -134,7 +132,7 @@ training_module:
           _target_: sparse_delta_core.train.GateMeanMetric
 
   val_metrics:
-    _target_: nequip.train.EnergyForceMetrics
+    _target_: nequip.train.EnergyOnlyMetrics
     coeffs:
       per_atom_energy_mae: 1.0
   train_metrics: ${training_module.val_metrics}
