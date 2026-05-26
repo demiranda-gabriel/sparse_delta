@@ -1,11 +1,28 @@
 # 4-composite_warmstart
 
-**Status:** running (queued)
+**Status:** done-success
 **Date:** 2026-05-17
 **Outer SHA:** `2677aca`
 **Submodule SHAs:** `nequip-private=74c7689  allegro-private=82d7258  sparse-delta-core=9e10612`
 **SLURM job:** `13516824` on `kozinsky_gpu` (1-day walltime, 200 epoch cap, patience 40).
-**WandB:** _filled once the job starts_ — project `sparse-delta`, group `4-composite_warmstart`
+**WandB:** [9ql3tk6c](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/9ql3tk6c) — project `sparse-delta`, group `4-composite_warmstart`
+
+**Outcome (2026-05-20):** Job 13516824 completed 200 epochs in 1h22m on
+`kozinsky_gpu`. Test metrics:
+
+- `forces_mae` = 0.0889 eV/Å
+- `per_atom_energy_mae` = 0.0063 eV/atom
+- `total_energy_mae` = 0.513 eV
+- `weighted_sum` = 0.0476
+
+Best `best.ckpt` archived at
+`/n/holylabs/LABS/kozinsky_lab/Users/demiranda/projects/sparse-delta/saved_models/packages/4-composite_warmstart.ckpt`
+(raw Lightning checkpoint; `.nequip.zip` packaging deferred —
+`nequip-package` needs `sparse_delta_core` registered as intern via the
+entry-point group; the current `pyproject.toml` points only at
+`._keys`, so the packager misses the `nn` / `model` submodules). CSV
+row added under experiment `4-composite_warmstart`, tag
+`joint-warmstart`.
 
 **Smoke (job 13513507):** infra OK — 3 epochs on gpu_test with cu128 torch + cuEquivariance + compile_mode=compile. Train weighted_sum 3.18 → 1.52; val 2.70 → 1.46; λ_mean 0.05 → 0.84 (gate opens fast with tiny M0 + sparsity_coeff=0.1; expected to rebalance once M0 has capacity at the full config sizes). Logs: `_smoke/logs/sd_warmstart_smoke_13513507.{out,err}`.
 
