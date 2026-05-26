@@ -65,15 +65,17 @@ trainer:
     - _target_: sparse_delta_core.train.LoadWeightsCallback
       weights_path: ${stage1_weights_path}
       strict: false
-      # Stage-1 standalone has ~30 named parameters; require at least
-      # 20 matched so a typo'd prefix or wrong arch tripping the count
-      # raises rather than silently training from scratch.
-      require_load_count: 20
+      # M0 standalone has ~22 state-dict entries (params + buffers).
+      # Threshold at 15 — catches typo'd prefix while leaving headroom
+      # for arch changes that drop a few buffers.
+      require_load_count: 15
 
     - _target_: sparse_delta_core.train.FreezeByNameCallback
       patterns:
         - m0_
-      require_freeze_count: 20
+      # M0 has ~15 trainable parameters (state-dict entries include
+      # buffers, but FreezeByName only counts ``named_parameters()``).
+      require_freeze_count: 10
 
 # === training module: warm-start composite, constant gate ===
 training_module:
