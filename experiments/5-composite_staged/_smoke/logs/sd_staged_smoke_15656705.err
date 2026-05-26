@@ -1,0 +1,81 @@
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:881: Checkpoint directory /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged_smoke/5-composite_staged_smoke-stage1_m0 exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-73392f3a-a7ca-5d01-849d-8e2dbe0fde5e]
+
+  | Name          | Type           | Params | Mode  | FLOPs
+-----------------------------------------------------------------
+0 | model         | ModuleDict     | 8.5 K  | train | 0    
+1 | loss          | MetricsManager | 0      | train | 0    
+2 | train_metrics | MetricsManager | 0      | train | 0    
+3 | val_metrics   | ModuleList     | 0      | train | 0    
+4 | test_metrics  | ModuleList     | 0      | train | 0    
+-----------------------------------------------------------------
+8.5 K     Trainable params
+0         Non-trainable params
+8.5 K     Total params
+0.034     Total estimated model params size (MB)
+95        Modules in train mode
+0         Modules in eval mode
+0         Total Flops
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=599887) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-73392f3a-a7ca-5d01-849d-8e2dbe0fde5e]
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=599887) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:881: Checkpoint directory /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged_smoke/5-composite_staged_smoke-stage2_m1 exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-73392f3a-a7ca-5d01-849d-8e2dbe0fde5e]
+
+  | Name          | Type           | Params | Mode  | FLOPs
+-----------------------------------------------------------------
+0 | model         | ModuleDict     | 15.0 K | train | 0    
+1 | loss          | MetricsManager | 0      | train | 0    
+2 | train_metrics | MetricsManager | 0      | train | 0    
+3 | val_metrics   | ModuleList     | 0      | train | 0    
+4 | test_metrics  | ModuleList     | 0      | train | 0    
+-----------------------------------------------------------------
+6.6 K     Trainable params
+8.5 K     Non-trainable params
+15.0 K    Total params
+0.060     Total estimated model params size (MB)
+133       Modules in train mode
+0         Modules in eval mode
+0         Total Flops
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=613467) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-73392f3a-a7ca-5d01-849d-8e2dbe0fde5e]
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=613467) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:881: Checkpoint directory /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged_smoke/5-composite_staged_smoke-stage3_gate exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-73392f3a-a7ca-5d01-849d-8e2dbe0fde5e]
+
+  | Name          | Type           | Params | Mode  | FLOPs
+-----------------------------------------------------------------
+0 | model         | ModuleDict     | 17.7 K | train | 0    
+1 | loss          | MetricsManager | 0      | train | 0    
+2 | train_metrics | MetricsManager | 0      | train | 0    
+3 | val_metrics   | ModuleList     | 0      | train | 0    
+4 | test_metrics  | ModuleList     | 0      | train | 0    
+-----------------------------------------------------------------
+2.6 K     Trainable params
+15.0 K    Non-trainable params
+17.7 K    Total params
+0.071     Total estimated model params size (MB)
+142       Modules in train mode
+0         Modules in eval mode
+0         Total Flops
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=631655) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-73392f3a-a7ca-5d01-849d-8e2dbe0fde5e]
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=631655) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()

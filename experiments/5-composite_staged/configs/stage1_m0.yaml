@@ -1,0 +1,120 @@
+# 5-composite_staged / stage1_m0
+#
+# Stage 1 of the staged training schedule: train M0 (small Allegro,
+# l_max=1, num_layers=2) standalone on cameron_plus_bulkpt with
+# energy + force MSE. No gate, no M1.
+#
+# On completion: the best.ckpt is converted via
+#   python scripts/extract_model_weights.py best.ckpt stage1_weights.pt
+# and stage 2 reads stage1_weights.pt via LoadWeightsCallback to
+# initialise its M0 sub-stack to these trained values.
+
+defaults:
+  - base
+  - _self_
+
+# === stage-specific hparams ===
+lr: 0.001
+target_max_epochs: 200
+early_stop_patience: 40
+run_id: 5-composite_staged-stage1_m0
+
+# === hydra runtime directory ===
+hydra:
+  run:
+    dir: ${stage_root}/${run_id}
+
+# === trainer ===
+trainer:
+  _target_: lightning.Trainer
+  accelerator: gpu
+  devices: 1
+  num_nodes: 1
+  enable_checkpointing: true
+  gradient_clip_val: ${grad_clip}
+  max_epochs: ${target_max_epochs}
+  max_time: 01:00:00:00
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+  logger:
+    _target_: lightning.pytorch.loggers.wandb.WandbLogger
+    project: sparse-delta
+    entity: demiranda-gabriel
+    name: ${run_id}
+    group: 5-composite_staged
+    save_dir: ${hydra:runtime.output_dir}
+
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: ${monitor}
+      dirpath: ${hydra:runtime.output_dir}
+      filename: best
+      save_last: true
+
+    - _target_: lightning.pytorch.callbacks.EarlyStopping
+      monitor: ${monitor}
+      min_delta: ${stop_delta}
+      patience: ${early_stop_patience}
+
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: epoch
+
+# === training module: M0 standalone ===
+training_module:
+  _target_: nequip.train.NequIPLightningModule
+
+  loss:
+    _target_: nequip.train.EnergyForceLoss
+    per_atom_energy: true
+    coeffs:
+      total_energy: 1.0
+      forces: 1.0
+
+  val_metrics:
+    _target_: nequip.train.EnergyForceMetrics
+    coeffs:
+      per_atom_energy_mae: 1.0
+      forces_mae: 1.0
+  train_metrics: ${training_module.val_metrics}
+  test_metrics: ${training_module.val_metrics}
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${lr}
+
+  lr_scheduler:
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      patience: ${lr_patience}
+      factor: ${lr_factor}
+      min_lr: 1e-6
+    monitor: ${monitor}
+    interval: epoch
+    frequency: 1
+
+  # Wrap M0 standalone in the cuEquivariance modifier (same as
+  # exp 4) for the runtime contracter swap. compile_mode: eager —
+  # PT2 compile bisect outcome carried over conservatively.
+  model:
+    _target_: nequip.model.modify
+    modifiers:
+      - modifier: enable_CuEquivarianceContracter
+    model:
+      _target_: sparse_delta_core.model.build_m0_standalone
+      compile_mode: eager
+      seed: ${common_seed}
+      model_dtype: float32
+      r_max: ${cutoff_radius}
+      type_names: ${model_type_names}
+      m0_radial_chemical_embed: ${m0_radial_chemical_embed}
+      m0_radial_chemical_embed_dim: ${m0_radial_chemical_embed_dim}
+      m0_l_max: ${m0_l_max}
+      m0_parity: ${m0_parity}
+      m0_num_layers: ${m0_num_layers}
+      m0_num_scalar_features: ${m0_num_scalar_features}
+      m0_num_tensor_features: ${m0_num_tensor_features}
+      m0_allegro_mlp_hidden_layers_width: ${m0_allegro_mlp_hidden_layers_width}
+      m0_readout_mlp_hidden_layers_width: ${m0_readout_mlp_hidden_layers_width}
+      avg_num_neighbors: ${avg_num_neighbors_default}
+      do_derivatives: true

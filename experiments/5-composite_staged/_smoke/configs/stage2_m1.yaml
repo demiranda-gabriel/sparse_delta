@@ -1,0 +1,114 @@
+# 5-composite_staged / _smoke / stage2_m1
+
+defaults:
+  - base
+  - _self_
+
+lr: 0.0005
+run_id: 5-composite_staged_smoke-stage2_m1
+stage1_weights_path: ${stage_root}/stage1_m0/stage1_weights.pt
+
+hydra:
+  run:
+    dir: ${stage_root}/${run_id}
+
+trainer:
+  _target_: lightning.Trainer
+  accelerator: gpu
+  devices: 1
+  num_nodes: 1
+  enable_checkpointing: true
+  gradient_clip_val: ${grad_clip}
+  max_epochs: 3
+  max_time: 00:00:15:00
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 10
+  limit_train_batches: 30
+  limit_val_batches: 10
+
+  logger:
+    _target_: lightning.pytorch.loggers.CSVLogger
+    save_dir: ${hydra:runtime.output_dir}
+    name: csv_logs
+
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: ${monitor}
+      dirpath: ${hydra:runtime.output_dir}
+      filename: best
+      save_last: true
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: epoch
+    - _target_: sparse_delta_core.train.LoadWeightsCallback
+      weights_path: ${stage1_weights_path}
+      strict: false
+      require_load_count: 10
+    - _target_: sparse_delta_core.train.FreezeByNameCallback
+      patterns: [m0_]
+      require_freeze_count: 10
+
+training_module:
+  _target_: nequip.train.NequIPLightningModule
+
+  loss:
+    _target_: nequip.train.EnergyForceLoss
+    per_atom_energy: true
+    coeffs:
+      total_energy: 1.0
+      forces: 1.0
+
+  val_metrics:
+    _target_: nequip.train.EnergyForceMetrics
+    coeffs:
+      per_atom_energy_mae: 1.0
+      forces_mae: 1.0
+  train_metrics: ${training_module.val_metrics}
+  test_metrics: ${training_module.val_metrics}
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${lr}
+    param_groups:
+      _target_: sparse_delta_core.train.trainable_param_group
+
+  lr_scheduler:
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      patience: ${lr_patience}
+      factor: ${lr_factor}
+      min_lr: 1e-6
+    monitor: ${monitor}
+    interval: epoch
+    frequency: 1
+
+  model:
+    _target_: nequip.model.modify
+    modifiers:
+      - modifier: enable_CuEquivarianceContracter
+    model:
+      _target_: sparse_delta_core.model.build_warmstart_composite
+      compile_mode: eager
+      seed: ${common_seed}
+      model_dtype: float32
+      r_max: ${cutoff_radius}
+      type_names: ${model_type_names}
+      m0_radial_chemical_embed: ${m0_radial_chemical_embed}
+      m0_radial_chemical_embed_dim: ${m0_radial_chemical_embed_dim}
+      m0_l_max: ${m0_l_max}
+      m0_parity: ${m0_parity}
+      m0_num_layers: ${m0_num_layers}
+      m0_num_scalar_features: ${m0_num_scalar_features}
+      m0_num_tensor_features: ${m0_num_tensor_features}
+      m0_allegro_mlp_hidden_layers_width: ${m0_allegro_mlp_hidden_layers_width}
+      m0_readout_mlp_hidden_layers_width: ${m0_readout_mlp_hidden_layers_width}
+      m1_l_max: ${m1_l_max}
+      m1_parity: ${m1_parity}
+      m1_num_layers: ${m1_num_layers}
+      m1_num_scalar_features: ${m1_num_scalar_features}
+      m1_num_tensor_features: ${m1_num_tensor_features}
+      m1_allegro_mlp_hidden_layers_width: ${m1_allegro_mlp_hidden_layers_width}
+      m1_readout_mlp_hidden_layers_width: ${m1_readout_mlp_hidden_layers_width}
+      gate_mode: constant
+      gate_constant_value: 1.0
+      avg_num_neighbors: ${avg_num_neighbors_default}
+      do_derivatives: true

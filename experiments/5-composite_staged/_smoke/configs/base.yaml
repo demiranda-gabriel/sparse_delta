@@ -1,0 +1,86 @@
+# 5-composite_staged / _smoke / base
+#
+# Tiny variant of ../../configs/base.yaml for ~5-10 min gpu_test
+# smokes. Smaller widths, fewer epochs, no WandB.
+
+common_seed: 217
+cutoff_radius: 5.0
+batch_size: 2
+grad_clip: 0.3
+stop_delta: 0
+lr_patience: 5
+lr_factor: 0.8
+
+data_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt
+project_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta
+stage_root: ${project_root}/runs/5-composite_staged_smoke
+
+monitor: val0_epoch/weighted_sum
+chemical_symbols: [C, O, Pt]
+model_type_names: ${chemical_symbols}
+
+data:
+  _target_: nequip.data.datamodule.ASEDataModule
+  train_file_path: ${data_root}/split_train.xyz
+  val_file_path: ${data_root}/split_val.xyz
+  test_file_path: ${data_root}/split_test.xyz
+  exclude_keys:
+    - dipole
+    - model_index
+  seed: ${common_seed}
+  transforms:
+    - _target_: nequip.data.transforms.ChemicalSpeciesToAtomTypeMapper
+      model_type_names: ${model_type_names}
+    - _target_: nequip.data.transforms.NeighborListTransform
+      r_max: ${cutoff_radius}
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: 2
+    shuffle: true
+  val_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: ${data.train_dataloader.num_workers}
+  test_dataloader: ${data.val_dataloader}
+  stats_manager:
+    _target_: nequip.data.CommonDataStatisticsManager
+    dataloader_kwargs:
+      batch_size: ${batch_size}
+    type_names: ${model_type_names}
+
+run: [train, test]
+
+# Smaller arch for smoke — mirrors production proportions
+# (M0 l_max=1, M1 l_max=3 via adapter; M1 num_layers=3 multi-layer
+# Allegro for strict-locality coverage in the smoke).
+m0_l_max: 1
+m0_parity: true
+m0_num_layers: 2
+m0_num_scalar_features: 16
+m0_num_tensor_features: 16
+m0_allegro_mlp_hidden_layers_width: 32
+m0_readout_mlp_hidden_layers_width: 16
+m0_radial_chemical_embed_dim: 32
+m0_radial_chemical_embed:
+  _target_: allegro.nn.TwoBodyBesselScalarEmbed
+  num_bessels: 4
+  bessel_trainable: false
+  polynomial_cutoff_p: 6
+
+m1_l_max: 3
+m1_parity: true
+m1_num_layers: 3
+m1_num_scalar_features: 32
+m1_num_tensor_features: 16
+m1_allegro_mlp_hidden_layers_width: 32
+m1_readout_mlp_hidden_layers_width: 16
+
+gate_edge_hidden_dim: 32
+gate_node_hidden_dim: 32
+gate_node_hidden_depth: 2
+gate_function: sigmoid
+gate_initial_lambda_mean: 0.05
+sparsity_coeff: 1.0
+
+avg_num_neighbors_default: 30.0

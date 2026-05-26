@@ -1,0 +1,115 @@
+# 5-composite_staged: shared configuration scaffold.
+#
+# Stage configs (stage1_m0.yaml, stage2_m1.yaml, stage3_gate.yaml)
+# include this file via Hydra's `defaults: [base]` so the data,
+# trainer, type names, and shared hparams stay in one place. Each
+# stage adds/overrides the model, loss, callbacks, and run_id fields
+# as needed.
+#
+# Architecture decisions baked in here:
+#   - cutoff radius 5.0 (cameron_plus_bulkpt convention).
+#   - chemical_symbols [C, O, Pt] (cameron CO/Pt slabs + bulk-Pt).
+#   - WandB project: sparse-delta, group: 5-composite_staged.
+#   - compile_mode: eager (PT2 compile NaNs the warm-start composite —
+#     see notes/pt2_compile_warmstart_nan_study.md). cuEquivariance
+#     stays on via the model_modify hook in stage configs.
+
+# === fixed hparams (shared across all stages) ===
+common_seed: 217
+cutoff_radius: 5.0
+
+# Training scaffolding
+batch_size: 4
+grad_clip: 0.3
+stop_delta: 0
+lr_patience: 20
+lr_factor: 0.8
+
+# === paths ===
+data_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt
+project_root: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta
+stage_root: ${project_root}/runs/5-composite_staged
+
+monitor: val0_epoch/weighted_sum
+chemical_symbols: [C, O, Pt]
+model_type_names: ${chemical_symbols}
+
+# === data module ===
+data:
+  _target_: nequip.data.datamodule.ASEDataModule
+  train_file_path: ${data_root}/split_train.xyz
+  val_file_path: ${data_root}/split_val.xyz
+  test_file_path: ${data_root}/split_test.xyz
+  exclude_keys:
+    - dipole
+    - model_index
+
+  seed: ${common_seed}
+  transforms:
+    - _target_: nequip.data.transforms.ChemicalSpeciesToAtomTypeMapper
+      model_type_names: ${model_type_names}
+    - _target_: nequip.data.transforms.NeighborListTransform
+      r_max: ${cutoff_radius}
+
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: 4
+    shuffle: true
+  val_dataloader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: ${batch_size}
+    num_workers: ${data.train_dataloader.num_workers}
+  test_dataloader: ${data.val_dataloader}
+
+  stats_manager:
+    _target_: nequip.data.CommonDataStatisticsManager
+    dataloader_kwargs:
+      batch_size: ${batch_size}
+    type_names: ${model_type_names}
+
+# === nequip top-level ===
+run: [train, test]
+
+# === M0 hparams (shared by stage 1 + downstream stages) ===
+# l_max = 1 (cheap everywhere-pass; M1 lifts to l_max=3 via adapter).
+# num_tensor_features bumped 16 → 32 to satisfy v1 alias constraint
+# m1_num_tensor_features == m0_num_tensor_features.
+m0_l_max: 1
+m0_parity: true
+m0_num_layers: 2
+m0_num_scalar_features: 32
+m0_num_tensor_features: 32
+m0_allegro_mlp_hidden_layers_width: 64
+m0_readout_mlp_hidden_layers_width: 32
+m0_radial_chemical_embed_dim: 128
+m0_radial_chemical_embed:
+  _target_: allegro.nn.TwoBodyBesselScalarEmbed
+  num_bessels: 8
+  bessel_trainable: false
+  polynomial_cutoff_p: 6
+
+# === M1 hparams (used by stages 2 + 3; stage 1 ignores) ===
+# l_max=3 (lift via TensorTrackAdapter + dedicated m1_edge_sh).
+# num_layers=3: Allegro is strictly local at any depth — each layer
+# only sees the receiver atom's 1-shell environment, so the
+# composite's sparsity savings argument is unaffected (M1 still
+# evaluated on the gated subset, with 1-shell halo per active atom).
+m1_l_max: 3
+m1_parity: true
+m1_num_layers: 3
+m1_num_scalar_features: 128
+m1_num_tensor_features: 32
+m1_allegro_mlp_hidden_layers_width: 128
+m1_readout_mlp_hidden_layers_width: 64
+
+# Gate (used by stages 2 + 3; stage 1 has no gate).
+gate_edge_hidden_dim: 64
+gate_node_hidden_dim: 64
+gate_node_hidden_depth: 2
+gate_function: sigmoid
+gate_initial_lambda_mean: 0.05
+sparsity_coeff: 1.0
+
+# Placeholder (real value injected by stats_manager).
+avg_num_neighbors_default: 30.0
