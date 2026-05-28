@@ -1,0 +1,59 @@
+2026-05-28 01:45:40,296 INFO loading checkpoint: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt
+2026-05-28 01:45:40,299 INFO [rank: 0] Loading model from checkpoint file: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt ...
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+2026-05-28 01:45:41,095 WARNING Failed to get GPU information from pynvml: Unknown Error. Using default values for NVIDIA A100-SXM4-40GB.
+2026-05-28 01:45:42,252 INFO moving model to cuda
+2026-05-28 01:45:42,252 INFO loading val xyz: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt/split_val.xyz
+2026-05-28 01:45:42,365 INFO val frames available: 274
+2026-05-28 01:45:49,856 INFO   frame 10/50 (n_atoms=56, λ_mean=0.000)
+2026-05-28 01:45:50,203 INFO   frame 20/50 (n_atoms=151, λ_mean=0.000)
+2026-05-28 01:45:50,853 INFO   frame 30/50 (n_atoms=56, λ_mean=0.000)
+2026-05-28 01:45:51,184 INFO   frame 40/50 (n_atoms=91, λ_mean=0.000)
+2026-05-28 01:45:51,445 INFO   frame 50/50 (n_atoms=60, λ_mean=0.000)
+2026-05-28 01:45:51,445 INFO total atoms scored: 4111
+2026-05-28 01:45:51,457 INFO summary:
+2026-05-28 01:45:51,457 INFO {
+  "overall": {
+    "n": 4111,
+    "mean": 2.208696114891495e-09,
+    "std": 1.0007686768176427e-07,
+    "median": 0.0,
+    "frac_below_0.05": 1.0,
+    "frac_above_0.95": 0.0,
+    "min": 0.0,
+    "max": 4.538351277005859e-06
+  },
+  "C": {
+    "n": 636,
+    "mean": 3.36148126143064e-30,
+    "std": 0.0,
+    "median": 1.225153132631649e-34,
+    "frac_below_0.05": 1.0,
+    "frac_above_0.95": 0.0,
+    "min": 0.0,
+    "max": 1.5879834540752105e-27
+  },
+  "O": {
+    "n": 636,
+    "mean": 1.8134445422785416e-25,
+    "std": 0.0,
+    "median": 1.8561578113868318e-35,
+    "frac_below_0.05": 1.0,
+    "frac_above_0.95": 0.0,
+    "min": 0.0,
+    "max": 1.1489446064536845e-22
+  },
+  "Pt": {
+    "n": 2839,
+    "mean": 3.198291409489684e-09,
+    "std": 1.2041408581353608e-07,
+    "median": 0.0,
+    "frac_below_0.05": 1.0,
+    "frac_above_0.95": 0.0,
+    "min": 0.0,
+    "max": 4.538351277005859e-06
+  }
+}
+2026-05-28 01:45:51,475 INFO wrote /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/gate_distribution.json
+2026-05-28 01:45:52,047 INFO wrote /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/gate_distribution.png

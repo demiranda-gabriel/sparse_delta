@@ -134,8 +134,20 @@ def main() -> int:
             k: (v.to(device) if isinstance(v, torch.Tensor) else v)
             for k, v in data.items()
         }
+        # Bypass ForceStressOutput — we only need GATE_KEY (per-atom λ),
+        # not forces. The lightning model wrapping is
+        # GraphModel(model=ForceStressOutput(func=SequentialGraphNetwork)).
+        # Reach into model.model.func to get the bare energy net so
+        # we can skip the autograd.grad(E, positions) call that ForceStressOutput
+        # does on every forward.
+        if hasattr(model, "model") and hasattr(model.model, "func"):
+            energy_net = model.model.func
+        elif hasattr(model, "func"):
+            energy_net = model.func
+        else:
+            energy_net = model
         with torch.no_grad():
-            out = model(data)
+            out = energy_net(data)
 
         lam = out[GATE_KEY].detach().cpu().numpy().reshape(-1)
         types = out[AtomicDataDict.ATOM_TYPE_KEY].detach().cpu().numpy().reshape(-1)

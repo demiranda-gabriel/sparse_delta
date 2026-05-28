@@ -1,0 +1,46 @@
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+wandb: WARNING The anonymous setting has no effect and will be removed in a future version.
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /n/home04/demiranda/.netrc.
+wandb: Currently logged in as: demiranda-gabriel to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:269: DeprecationWarning: Read the `app_url` setting from the appropriate Settings object.
+  app_url = wandb.util.app_url(tags["base_url"])  # type: ignore[index]
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:269: DeprecationWarning: Read the `app_url` setting from the appropriate Settings object.
+  app_url = wandb.util.app_url(tags["base_url"])  # type: ignore[index]
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:280: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:269: DeprecationWarning: Read the `app_url` setting from the appropriate Settings object.
+  app_url = wandb.util.app_url(tags["base_url"])  # type: ignore[index]
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:280: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged_sweep-sc_0.5/wandb/run-20260528_014635-z0s0fbtc
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run 5-composite_staged_sweep-sc_0.5
+wandb: ⭐️ View project at https://wandb.ai/demiranda-gabriel/sparse-delta
+wandb: 🚀 View run at https://wandb.ai/demiranda-gabriel/sparse-delta/runs/z0s0fbtc
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:881: Checkpoint directory /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged_sweep-sc_0.5 exists and is not empty.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name          | Type           | Params | Mode  | FLOPs
+-----------------------------------------------------------------
+0 | model         | ModuleDict     | 307 K  | train | 0    
+1 | loss          | MetricsManager | 0      | train | 0    
+2 | train_metrics | MetricsManager | 0      | train | 0    
+3 | val_metrics   | ModuleList     | 0      | train | 0    
+4 | test_metrics  | ModuleList     | 0      | train | 0    
+-----------------------------------------------------------------
+10.4 K    Trainable params
+296 K     Non-trainable params
+307 K     Total params
+1.229     Total estimated model params size (MB)
+158       Modules in train mode
+0         Modules in eval mode
+0         Total Flops
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=3148869) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+SLURM auto-requeueing enabled. Setting signal handlers.
+/n/netscratch/kozinsky_lab/Lab/demiranda/software/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=3148869) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()

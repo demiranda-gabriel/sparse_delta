@@ -1,18 +1,18 @@
-2026-05-28 01:41:11,854 INFO loading checkpoint: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt
-2026-05-28 01:41:11,855 INFO [rank: 0] Loading model from checkpoint file: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt ...
+2026-05-28 01:42:47,645 INFO loading checkpoint: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt
+2026-05-28 01:42:47,648 INFO [rank: 0] Loading model from checkpoint file: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt ...
 /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
   warnings.warn(
-2026-05-28 01:41:12,682 WARNING Failed to get GPU information from pynvml: Unknown Error. Using default values for NVIDIA A100-SXM4-40GB.
-2026-05-28 01:41:13,800 INFO moving model to cuda
-2026-05-28 01:41:13,801 INFO loading val xyz: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt/split_val.xyz
-2026-05-28 01:41:13,914 INFO val frames available: 274
+2026-05-28 01:42:48,650 WARNING Failed to get GPU information from pynvml: Unknown Error. Using default values for NVIDIA A100-SXM4-40GB.
+2026-05-28 01:42:49,784 INFO moving model to cuda
+2026-05-28 01:42:49,784 INFO loading val xyz: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt/split_val.xyz
+2026-05-28 01:42:49,900 INFO val frames available: 274
 Traceback (most recent call last):
-  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/analyze_gate.py", line 228, in <module>
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/analyze_gate.py", line 234, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/analyze_gate.py", line 138, in main
-    out = model(data)
-          ^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/analyze_gate.py", line 144, in main
+    out = energy_net(data)
+          ^^^^^^^^^^^^^^^^
   File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
     return self._call_impl(*args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
