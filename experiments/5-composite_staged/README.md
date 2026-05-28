@@ -1,11 +1,68 @@
 # 5-composite_staged
 
-**Status:** planned
-**Date:** 2026-05-25
-**Outer SHA:** _filled at commit time_
-**Submodule SHAs:** `nequip-private=…  allegro-private=…  sparse-delta-core=…`
-**WandB:** _filled at submission_ — project `sparse-delta`, group `5-composite_staged`,
-runs `stage1_m0` / `stage2_m1` / `stage3_gate`
+**Status:** done-success (stages 1-3 complete; sparsity_coeff sweep pending)
+**Date:** 2026-05-25 (submit) → 2026-05-28 (chain complete)
+**Outer SHA:** `f91c90b` (chain) / `26c8caf` (parent)
+**Submodule SHAs:** `sparse-delta-core=2d274e3`
+**WandB:**
+- stage 1 → [`vrjc4hiv`](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/vrjc4hiv)
+- stage 2 → [`ay5b5zes`](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/ay5b5zes)
+- stage 3 → [`vzqofs9q`](https://wandb.ai/demiranda-gabriel/sparse-delta/runs/vzqofs9q)
+
+## Outcome (2026-05-28)
+
+| Stage | Partition | Wall | Test forces_mae | Test per_atom_E mae | Notes |
+|---|---|---|---|---|---|
+| 1 (M0 alone) | kozinsky_gpu | 59 min | — | — | Stage 1 metrics not surfaced (M0 standalone tail). See wandb. |
+| 2 (M1, λ=1 const) | seas_gpu | 1h41m | **0.073 eV/Å** | 0.0058 eV/atom | **Beats exp 4 joint baseline (0.089).** |
+| 3 (learned gate) | seas_gpu | 44 min | 0.096 eV/Å | 0.0081 eV/atom | Regresses vs stage 2 — `sparsity_coeff=1.0` too aggressive (see follow-up). |
+
+**Pipeline validation:**
+- LoadWeightsCallback / FreezeByNameCallback both fire correctly at
+  every stage. Stage 2: 22 M0 params loaded, 15 frozen. Stage 3: 42
+  params loaded, 30 frozen (M0+M1+adapter+edge_sh).
+- Adapter handles ℓ=1→3 lift; M1's ℓ=2 and ℓ=3 input channels start
+  zero, gain capacity through the dedicated `m1_edge_sh`.
+- Two-partition delay diagnosed first chain: lab `kozinsky_gpu`
+  saturated, jobs sat queued >24 h. Resubmit with multi-partition list
+  (`gpu,seas_gpu,kozinsky_gpu,gpu_h200`) + relaxed `--gres=gpu:1`
+  scheduled within hours on `seas_gpu`. Saved as
+  `feedback_gpu_partitions.md` for future jobs.
+
+**Headline finding:** the staged curriculum's **stage 2** (full-strength
+M1 correction everywhere, M0 frozen) produces a **better** model than
+exp 4's joint training. Stage 3's learned gate then degrades the model
+because the sparsity penalty (`coeff=1.0`, weighted equally with E+F)
+trades useful M1 correction for sparsity. The right move is a
+sparsity-coefficient sweep (see follow-up below).
+
+## Artifacts
+
+Best checkpoints + companion `state_dict.pt` files mirrored to
+holylabs:
+
+```
+/n/holylabs/LABS/kozinsky_lab/Users/demiranda/projects/sparse-delta/saved_models/packages/
+├── 5-composite_staged-stage1_m0.ckpt       (~500 KB, M0 standalone)
+├── 5-composite_staged-stage1_weights.pt    (stage 2 input)
+├── 5-composite_staged-stage2_m1.ckpt       (~5.4 MB, M0+adapter+M1 best)
+├── 5-composite_staged-stage2_weights.pt    (stage 3 input)
+└── 5-composite_staged-stage3_gate.ckpt     (~3.5 MB, learned-gate composite)
+```
+
+CSV rows added to `saved_models/best_checkpoint_paths.csv` under
+experiment `5-composite_staged` (tags `stage1_m0`, `stage2_m1`,
+`stage3_gate`). `.nequip.zip` packaging deferred per the same
+entry-point bug noted on exp 4 (sparse-delta-core's
+`nequip.extension` entry currently scopes to `._keys` only; needs to
+broaden to `sparse_delta_core` so the packager interns the
+`nn`/`model` submodules).
+
+## Follow-up: sparsity_coeff sweep
+
+Stage 3 regression motivates a focused sweep of `sparsity_coeff`
+keeping stage 1 + stage 2 weights frozen (only the gate retrains).
+See `stage3_sweep_sparsity/`.
 
 ## Intent
 

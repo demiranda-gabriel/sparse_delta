@@ -1,0 +1,52 @@
+2026-05-28 01:37:58,674 INFO loading checkpoint: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt
+2026-05-28 01:37:58,677 INFO [rank: 0] Loading model from checkpoint file: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage3_gate/best.ckpt ...
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+2026-05-28 01:38:00,829 WARNING Failed to get GPU information from pynvml: Unknown Error. Using default values for NVIDIA A100-SXM4-40GB.
+2026-05-28 01:38:02,031 INFO loading val xyz: /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/data/optb88/cameron_plus_bulkpt/split_val.xyz
+2026-05-28 01:38:02,162 INFO val frames available: 274
+Traceback (most recent call last):
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/analyze_gate.py", line 220, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/experiments/5-composite_staged/results/analyze_gate.py", line 130, in main
+    out = model(data)
+          ^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/nequip-private/nequip/nn/graph_model.py", line 147, in forward
+    return self.model(new_data)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/nequip-private/nequip/nn/grad_output.py", line 215, in forward
+    data = self.func(data)
+           ^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/nequip-private/nequip/nn/_graph_mixin.py", line 237, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/nequip-private/nequip/nn/embedding/_edge.py", line 79, in forward
+    data[self.norm_length_field] = r * rmax_recip
+                                   ~~^~~~~~~~~~~~
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!
+srun: error: holygpu7c26106: task 0: Exited with exit code 1

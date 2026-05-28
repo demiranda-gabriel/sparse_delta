@@ -1,0 +1,71 @@
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+wandb: WARNING The anonymous setting has no effect and will be removed in a future version.
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /n/home04/demiranda/.netrc.
+wandb: Currently logged in as: demiranda-gabriel to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:269: DeprecationWarning: Read the `app_url` setting from the appropriate Settings object.
+  app_url = wandb.util.app_url(tags["base_url"])  # type: ignore[index]
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:269: DeprecationWarning: Read the `app_url` setting from the appropriate Settings object.
+  app_url = wandb.util.app_url(tags["base_url"])  # type: ignore[index]
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:280: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+wandb: setting up run t9vvsm48
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:269: DeprecationWarning: Read the `app_url` setting from the appropriate Settings object.
+  app_url = wandb.util.app_url(tags["base_url"])  # type: ignore[index]
+/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/wandb/analytics/sentry.py:280: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+wandb: Tracking run with wandb version 0.27.0
+wandb: Run data is saved locally in /n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/runs/5-composite_staged/5-composite_staged-stage2_m1/wandb/run-20260526_141147-t9vvsm48
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run 5-composite_staged-stage2_m1
+wandb: ⭐️ View project at https://wandb.ai/demiranda-gabriel/sparse-delta
+wandb: 🚀 View run at https://wandb.ai/demiranda-gabriel/sparse-delta/runs/t9vvsm48
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/bin/nequip-train", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+           ^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+            ^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+        ^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/nequip-private/nequip/scripts/train.py", line 245, in main
+    _run_with_suppressed_leafspec_warning(
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/nequip-private/nequip/scripts/train.py", line 40, in _run_with_suppressed_leafspec_warning
+    trainer_call(**kwargs)
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/trainer/trainer.py", line 584, in fit
+    call._call_and_handle_interrupt(
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/trainer/call.py", line 49, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/trainer/trainer.py", line 630, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path, weights_only=weights_only)
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/trainer/trainer.py", line 1039, in _run
+    call._call_setup_hook(self)  # allow user to set up LightningModule in accelerator environment
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/trainer/call.py", line 109, in _call_setup_hook
+    _call_callback_hooks(trainer, "setup", stage=fn)
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/.venv/lib/python3.12/site-packages/lightning/pytorch/trainer/call.py", line 228, in _call_callback_hooks
+    fn(trainer, trainer.lightning_module, *args, **kwargs)
+  File "/n/netscratch/kozinsky_lab/Lab/demiranda/projects/sparse_delta/software/sparse-delta-core/sparse_delta_core/train/stage_transfer.py", line 211, in setup
+    raise RuntimeError(
+RuntimeError: FreezeByNameCallback: only 15 parameters frozen with patterns=['m0_']; required >= 20. Did a pattern typo?
+srun: error: holygpu8a31401: task 0: Exited with exit code 1
