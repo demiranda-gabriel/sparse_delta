@@ -24,6 +24,7 @@ saved_models/
 .idea/
 .vscode/
 *.swp
+termpdf.log
 
 # notebooks
 .ipynb_checkpoints/

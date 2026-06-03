@@ -17,7 +17,7 @@ Committed; GitHub is source-of-truth.
 - `pyproject.toml` — uv workspace config.
 - `uv.lock` — pinned dependency graph.
 - `.gitignore` — ignore rules.
-- `experiments/` — per-experiment configs, SLURM scripts, READMEs, results/ subdirs. Reproducibility source-of-truth.
+- `experiments/` — per-experiment configs, SLURM scripts, READMEs, results/ subdirs. Reproducibility source-of-truth. Small SLURM stdout/stderr kept next to a run (`<exp>/<tag>/logs/*.{out,err}`) is tracked as provenance; bulky run logs may be left untracked (local-only) rather than committed.
 - `notes/` — design and status docs.
 - `scripts/` — utility scripts.
 - `software/install.sh` — bootstrap script for the workspace (clones read-only forks).
@@ -46,6 +46,8 @@ Ephemeral, regenerable, environment-specific. Not committed, not backed up.
 - `software/nequip-private/` — read-only mir-group fork, cloned by `software/install.sh`. Track upstream SHA via `notes/`, not via outer git.
 - `software/allegro-private/` — read-only mir-group fork, ditto.
 - `__pycache__/`, `*.egg-info/`, `.ipynb_checkpoints/`, `.uv/`, `uv.lock.bak`, OS junk (`.DS_Store`, `.idea/`, `*.swp`) — build/editor cruft.
+- `termpdf.log` (any dir) — md-view / termpdf temp output. Gitignored.
+- Bulky untracked per-experiment SLURM logs (e.g. `experiments/*/logs/`, `experiments/*/_*/logs/`) not committed as provenance — disposable.
 
 ## Rules (recap)
 
