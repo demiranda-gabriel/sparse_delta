@@ -17,6 +17,7 @@ Committed; GitHub is source-of-truth.
 - `pyproject.toml` — uv workspace config.
 - `uv.lock` — pinned dependency graph.
 - `.gitignore` — ignore rules.
+- `.python-version` — Python version pin (3.12.13).
 - `experiments/` — per-experiment configs, SLURM scripts, READMEs, results/ subdirs. Reproducibility source-of-truth. Small SLURM stdout/stderr kept next to a run (`<exp>/<tag>/logs/*.{out,err}`) is tracked as provenance; bulky run logs may be left untracked (local-only) rather than committed.
 - `notes/` — design and status docs.
 - `scripts/` — utility scripts.

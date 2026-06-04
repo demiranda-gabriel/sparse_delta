@@ -14,6 +14,11 @@ wandb/
 slurm-*.out
 core.*
 
+# nested per-experiment SLURM logs (bulky, local-only). The b1/b2 provenance
+# logs committed earlier stay tracked — gitignore does not untrack them.
+experiments/*/logs/
+experiments/*/_*/logs/
+
 # data and models live on holylabs; symlinked in at run time
 data/
 models/
