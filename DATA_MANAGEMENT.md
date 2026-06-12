@@ -56,3 +56,22 @@ Ephemeral, regenerable, environment-specific. Not committed, not backed up.
 2. Anything not in `.gitignore` is git-tracked.
 3. New top-level entry → classify in the same commit that introduces it.
 4. Before deleting a local copy of a gdrive-tracked path, confirm a recent push exists (`gdrive-push -n` first).
+
+## Polaris mirror (2026-06-12)
+
+Mirrored to `/lus/eagle/projects/HetRxnEnergy/demiranda/projects/sparse_delta`
+on Polaris (ALCF) ahead of FASRC maintenance. Cluster-specific deltas:
+
+- `data/` pulled from the shared multifidelity Drive subtree
+  (`optb88/`, `original/`) per the policy above; `saved_models/` pulled
+  from `sparse_delta/saved_models/`. Both are real directories (no
+  holylabs on Polaris).
+- `software/` forks pinned to the FASRC state: `nequip-private`
+  @ `74c7689f`, `allegro-private` @ `82d7258` with both
+  `sparse-delta-core/patches/` applied by `software/install.sh`
+  (verified byte-identical to the FASRC working tree).
+- `software/sparse-delta-core` is a nested standalone repo
+  (`demiranda-gabriel/sparse-delta-core`, here @ `2d274e3`) — the
+  superproject records it as a bare gitlink, so fresh clones get an
+  empty directory until it is cloned explicitly.
+- SLURM launchers do not apply on Polaris — submit via HyperQueue.
